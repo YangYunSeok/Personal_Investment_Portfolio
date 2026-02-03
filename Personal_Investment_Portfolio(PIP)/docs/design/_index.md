@@ -1,104 +1,121 @@
 # PIP SSOT Hub — docs/design/_index.md
 
-이 문서는 **PIP (Personal Investment Portfolio)** 프로젝트의 SSOT(단일 진실 소스) 허브 문서다.  
-모든 화면/모델/API/DB 설계 문서는 본 문서를 기준으로 연결되며, **문서가 코드보다 우선**한다.
+이 문서는 **PIP (Personal Investment Portfolio)** 프로젝트의 **SSOT(Single Source of Truth) 허브 문서**다.  
+모든 설계·개발·리뷰·확장은 **본 문서를 기준점(entry point)** 으로 삼는다.
+
+> ⚠️ 코드보다 문서가 우선이며  
+> SSOT에 없는 개념·필드·규칙은 **구현할 수 없다**.
 
 ---
 
-## 1. SSOT 우선순위 (NON-NEGOTIABLE)
+## 1. SSOT 계층 구조 및 우선순위 (NON-NEGOTIABLE)
 
-1) **최상위 설계(헌법)**  
-- `기본_화면_설계_V0.2.1.md`
+SSOT 해석이 필요할 경우, **아래 우선순위를 절대적으로 따른다.**
 
-2) **화면별 SSOT (ScreenID 단위)**  
-- `{SCREENID}_MODEL.md` : 도메인/타입/규칙(입력값 vs 계산값 포함)
-- `{SCREENID}_UI.md` : 화면 동작/레이아웃/UX
-- `{SCREENID}_API.md` : API 계약(Endpoint, Req/Res)
-- `{SCREENID}_DB.md` : 저장/조회 규칙(계산값 저장 금지 등)
+1. **최상위 설계(헌법)**
+   - 📜 [기본_화면_설계_V0.2.1.md](./basic/기본_화면_설계_V0.2.1.md)
+   - 프로젝트 전체 규칙, 용어, 원칙 정의
 
-> ⚠️ SSOT에 없는 규칙/필드는 **추측 구현 금지**  
-> 필요하면 **SSOT 문서부터 수정 → 계약 고정 → 구현** 순서로 진행한다.
+2. **화면별 SSOT (ScreenID 단위)**
+   - `{SCREENID}_MODEL.md` : 도메인 모델, 입력값/계산값 구분, 규칙
+   - `{SCREENID}_UI.md` : 화면 레이아웃, UX, 사용자 동작
+   - `{SCREENID}_API.md` : API 계약 (Endpoint / Request / Response)
+   - `{SCREENID}_DB.md` : 테이블, 조회 규칙, 저장 원칙
 
----
-
-## 2. 프로젝트 핵심 원칙 요약
-
-- **단일 원장(Single Ledger)**: 모든 자산 이벤트는 Activity(Transaction)로 기록
-- **입력값 vs 계산값 분리**
-  - 입력값: 거래일, 수량, 단가, 금액, 통화, 환율
-  - 계산값: 평균단가, 평가금액, 수익률, 환차손익, 원금회수율 (**저장 금지**)
-- **통화 원칙**
-  - 기준 통화: KRW
-  - 외화 자산 매도 → 해당 결제 통화 CASH 증가
-  - KRW 사용은 FX(Activity)로 전환
+3. **_index.md (본 문서)**
+   - SSOT 탐색 허브
+   - 문서 간 연결, 상태, 진행 기준 제공
 
 ---
 
-## 3. 화면 식별자 규칙
+## 2. 프로젝트 핵심 설계 원칙 요약
 
-`[PROJECT][DOMAIN][TYPE][SEQ]`
+### 2.1 단일 원장 (Single Ledger)
+
+- 모든 자산 이벤트는 **Activity(Transaction)** 로 기록한다.
+- 포지션, 평가, 수익률은 **Activity를 기반으로 계산**한다.
+
+### 2.2 입력값 vs 계산값 분리
+
+- **입력값**
+  - 거래일, 수량, 단가, 금액, 통화, 환율
+- **계산값**
+  - 평균단가, 평가금액, 수익률, 환차손익, 원금회수율
+- ❌ 계산값은 **저장하지 않는다**
+
+### 2.3 통화 원칙
+
+- 기준 통화: **KRW**
+- 외화 자산 매도 → 해당 통화 CASH 증가
+- KRW 사용은 **FX(Activity)** 로만 처리
+
+---
+
+## 3. 화면 식별자(ScreenID) 규칙
+
+```
+[PROJECT][DOMAIN][TYPE][SEQ]
+```
 
 - PROJECT: `PIP`
 - DOMAIN: ACTLOG, POSHLD, DASH, ASSETS, FX
-- TYPE: `S`(Screen), `P`(Popup)
-- SEQ: `01`, `02` …
-
-예시:
-- `PIPACTLOGS01` : Activity Log 메인 화면
-- `PIPACTLOGP01` : Activity 입력 팝업
-- `PIPPOSHLDS01` : Position 목록 화면
+- TYPE
+  - `S` : Screen
+  - `P` : Popup
+- SEQ: `01`, `02`, `03` ...
 
 ---
 
-## 4. 전체 화면 목록 (Screen Map)
+## 4. 전체 화면 SSOT 링크 맵 (Single Entry Point)
 
-> 아래 “문서 파일명”은 **파일명 규칙(식별 가능성)**을 위한 표준이다.  
-> 실제 리포지토리 경로 구조는 자유지만, 파일명은 반드시 동일해야 한다.
-
-| 화면 | ScreenID | 책임(역할) | 화면별 SSOT 문서 파일명(표준) |
-|---|---|---|---|
-| Activity Log | PIPACTLOGS01 | 모든 입력의 시작점 | `PIPACTLOGS01_MODEL.md` / `PIPACTLOGS01_UI.md` / `PIPACTLOGS01_API.md` / `PIPACTLOGS01_DB.md` |
-| Position | PIPPOSHLDS01 | 보유 자산 집계 | `PIPPOSHLDS01_MODEL.md` / `PIPPOSHLDS01_UI.md` / `PIPPOSHLDS01_API.md` / `PIPPOSHLDS01_DB.md` |
-| Dashboard | PIPDASHS01 | 요약/비중 시각화 | `PIPDASHS01_MODEL.md` / `PIPDASHS01_UI.md` / `PIPDASHS01_API.md` / `PIPDASHS01_DB.md` |
-| Asset Detail | PIPASSETS01 | 종목별 상세 | `PIPASSETS01_MODEL.md` / `PIPASSETS01_UI.md` / `PIPASSETS01_API.md` / `PIPASSETS01_DB.md` |
-| Exchange | PIPFXS01 | 환전 입력 | `PIPFXS01_MODEL.md` / `PIPFXS01_UI.md` / `PIPFXS01_API.md` / `PIPFXS01_DB.md` |
+| ScreenID | MODEL | UI | API | DB | 역할 |
+|---|---|---|---|---|---|
+| **PIPACTLOGS01** | [MODEL](./model/PIPACTLOGS01_MODEL.md) | [UI](./ui/PIPACTLOGS01_UI.md) | [API](./api/PIPACTLOGS01_API.md) | [DB](./db/PIPACTLOGS01_DB.md) | 모든 입력의 시작점 |
+| **PIPPOSHLDS01** | [MODEL](./model/PIPPOSHLDS01_MODEL.md) | [UI](./ui/PIPPOSHLDS01_UI.md) | [API](./api/PIPPOSHLDS01_API.md) | [DB](./db/PIPPOSHLDS01_DB.md) | 계산/집계 전담 |
+| **PIPDASHS01** | [MODEL](./model/PIPDASHS01_MODEL.md) | [UI](./ui/PIPDASHS01_UI.md) | [API](./api/PIPDASHS01_API.md) | [DB](./db/PIPDASHS01_DB.md) | 요약/시각화 |
+| **PIPASSETS01** | [MODEL](./model/PIPASSETS01_MODEL.md) | [UI](./ui/PIPASSETS01_UI.md) | [API](./api/PIPASSETS01_API.md) | [DB](./db/PIPASSETS01_DB.md) | 종목 상세 |
+| **PIPFXS01** | [MODEL](./model/PIPFXS01_MODEL.md) | [UI](./ui/PIPFXS01_UI.md) | [API](./api/PIPFXS01_API.md) | [DB](./db/PIPFXS01_DB.md) | 환전 입력 |
 
 ---
 
-## 5. 화면 간 흐름 (Data Flow)
+## 5. 화면 간 데이터 흐름
 
 ```
-PIPACTLOGS01 (입력)
-        ↓
-PIPPOSHLDS01 (집계/계산)
-        ↓
-PIPDASHS01 / PIPASSETS01 (시각화)
+PIPACTLOGS01 → PIPPOSHLDS01 → PIPDASHS01 / PIPASSETS01
 ```
 
 ---
 
-## 6. 백엔드 설계 원칙 (ScreenID 중심)
+## 6. 계약(Contract) 고정 기준
 
-- 모든 백엔드 컴포넌트는 **ScreenID 단위**로 생성한다.
-- ScreenID 없는 Controller/Service/Mapper 생성 금지
-- 표준 구성:
-  - `{SCREENID}Controller`
-  - `{SCREENID}Service`
-  - `{SCREENID}Mapper` (또는 `{SCREENID}Mapper.xml`)
+- MODEL / API / DB 문서가 모두 존재해야 구현 가능
+- 계산값은 저장하지 않는다
+- Activity(Transaction)는 단일 원장이다
 
 ---
 
-## 7. 작업 진행 순서 (강제)
+## 7. 백엔드 생성 규칙
 
-1) 범위 확정: 대상 ScreenID 명확화  
-2) SSOT 확인/수정: 규칙/필드/흐름을 SSOT에 먼저 반영  
-3) 계약 고정: Model/API 확정  
-4) 구현: 화면/백엔드 구현  
-5) 검증: SSOT ↔ 구현 정합성 점검
+- `{SCREENID}Controller`
+- `{SCREENID}Service`
+- `{SCREENID}Mapper`
+- ScreenID 없는 컴포넌트 생성 금지
 
 ---
 
-## 8. 현재 상태 메모
+## 8. Copilot / MCP 사용 규칙
 
-- `PIPPOSHLDS01` SSOT가 먼저 생성되어 있음(초기 버전).
-- 나머지 화면은 본 _index.md를 기준으로 SSOT를 순차 생성한다.
+```
+(A) 목표
+(B) 근거 SSOT
+(C) 변경 범위
+(D) 완료 조건
+(E) 금지사항
+```
+
+---
+
+## 9. SSOT 운영 원칙
+
+- SSOT 수정 → 계약 고정 → 구현 순서 고수
+- 코드로 규칙을 덮지 않는다
