@@ -1,0 +1,30 @@
+{
+  "name": "personal_investment_portfolio",
+  "version": "1.0.0",
+  "description": "엑셀로 관리하던 포트폴리오를 웹 형태로 변환하여 개발",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YangYunSeok/Personal_Investment_Portfolio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/YangYunSeok/Personal_Investment_Portfolio/issues"
+  },
+  "homepage": "https://github.com/YangYunSeok/Personal_Investment_Portfolio#readme",
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "vite": "^7.3.1"
+  }
+}

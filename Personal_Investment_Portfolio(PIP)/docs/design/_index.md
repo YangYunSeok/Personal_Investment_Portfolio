@@ -8,6 +8,42 @@
 
 ---
 
+## 0. 전역 메타 규칙 (우선순위 / 네이밍 / API 경로 / 책임 경계)
+
+### 0.1 SSOT 최종 결정권
+SSOT의 최종 결정권은 docs/design 내부 문서에만 있다.
+최상위는 기본_화면_설계(헌법)이며, 그 다음이 본 문서(_index.md)에 정의된 전역 메타 규칙이다.
+화면별 SSOT 간 충돌은 본 문서에 정의된 우선순위로만 판정한다.
+docs/copilot-instructions.md는 SSOT를 준수하기 위한 운영 규칙이며,
+SSOT의 우선순위나 내용을 재정의할 수 없다.
+instructions와 SSOT가 충돌할 경우, 항상 SSOT가 우선한다.
+
+### 0.2 화면 식별자(ScreenID) / 화면 파일명 전역 공식
+PIP 프로젝트의 화면 식별자 및 화면 파일명 전역 공식은 다음과 같다.
+
+공식: PIP{DOMAIN}{S|P}{SEQ}
+
+- DOMAIN: ACTLOG, POSHLD, DASH, ASSETS, FX 등 SSOT에 정의된 도메인
+- S: Screen, P: Popup
+- SEQ: 01, 02, 03 …
+
+본 공식은 PIP 프로젝트의 유일한 ScreenID 규칙이다.
+본 공식과 다른 형식은 비표준으로 간주한다.
+
+### 0.3 API 경로 전역 컨벤션
+전역 API base path는 `/api/pip` 로 단일화한다.
+API path는 소문자만 사용한다.
+API path에 ScreenID를 직접 포함하는 표기는 비표준으로 간주한다.
+
+### 0.4 문서 책임 경계
+- API 문서(api/*): endpoint / request / response / auth / validation 계약만 포함한다.
+- Model 문서(model/*): 필드 의미 / 상태 의미 / 계산·집계 규칙만 포함한다.
+- DB 문서(db/*): 테이블 / 조인 / 제약 / 인덱스 / 저장 원칙만 포함한다.
+- UI 문서(ui/*): 레이아웃 / UX / 사용자 동작 / 표시 규칙만 포함한다.
+
+SSOT 문서에 구현 파일, 클래스, 패키지, 디렉터리, 프레임워크 규칙을 포함하는 것을 금지한다.
+
+
 ## 1. SSOT 계층 구조 및 우선순위 (NON-NEGOTIABLE)
 
 SSOT 해석이 필요할 경우, **아래 우선순위를 절대적으로 따른다.**
@@ -94,16 +130,7 @@ PIPACTLOGS01 → PIPPOSHLDS01 → PIPDASHS01 / PIPASSETS01
 
 ---
 
-## 7. 백엔드 생성 규칙
-
-- `{SCREENID}Controller`
-- `{SCREENID}Service`
-- `{SCREENID}Mapper`
-- ScreenID 없는 컴포넌트 생성 금지
-
----
-
-## 8. Copilot / MCP 사용 규칙
+## 7. Copilot / MCP 사용 규칙
 
 ```
 (A) 목표
@@ -115,7 +142,7 @@ PIPACTLOGS01 → PIPPOSHLDS01 → PIPDASHS01 / PIPASSETS01
 
 ---
 
-## 9. SSOT 운영 원칙
+## 8. SSOT 운영 원칙
 
 - SSOT 수정 → 계약 고정 → 구현 순서 고수
 - 코드로 규칙을 덮지 않는다
