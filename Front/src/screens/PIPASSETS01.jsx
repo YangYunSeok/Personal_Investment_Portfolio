@@ -23,7 +23,10 @@ import {
   updateAsset,
 } from "../api/PIPASSETS01.api.js";
 import {
+  ASSET_TYPE_LABEL,
   ASSET_TYPE_OPTIONS,
+  CURRENCY_OPTIONS,
+  EXPOSURE_REGION_LABEL,
   EXPOSURE_REGION_OPTIONS,
   buildAssetUpsertPayload,
   buildAssetsListQuery,
@@ -31,6 +34,7 @@ import {
   mapAssetDetailToForm,
   mapAssetListResponse,
 } from "../api/PIPASSETS01.mapper.js";
+import styles from "./PIPASSETS01.module.css";
 
 const initialFilterForm = {
   assetType: "",
@@ -204,319 +208,279 @@ export default function PIPASSETS01() {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <h1 style={{ margin: 0, marginBottom: 12 }}>PIPASSETS01 · Asset Master</h1>
+    <div className={styles.page}>
+      {/* ── 상단: 화면 타이틀 ──────────────────────── */}
+      <h1 className={styles.pageTitle}>자산 메타 마스터</h1>
 
-      <section
-        aria-label="필터"
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          padding: 12,
-          marginBottom: 16,
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(140px, 1fr))",
-            gap: 12,
-            alignItems: "end",
-          }}
-        >
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>assetType</div>
-            <select value={filterForm.assetType} onChange={updateFilter("assetType")}>
+      {/* ── 중단: 필터 카드 ────────────────────────── */}
+      <section aria-label="필터" className={styles.card}>
+        <div className={styles.filterBar}>
+          <div className={styles.filterItem}>
+            <span className={styles.filterLabel}>자산유형</span>
+            <select
+              className={styles.select}
+              value={filterForm.assetType}
+              onChange={updateFilter("assetType")}
+            >
               <option value="">전체</option>
               {ASSET_TYPE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
-                  {option}
+                  {ASSET_TYPE_LABEL[option] ?? option}
                 </option>
               ))}
             </select>
-          </label>
+          </div>
 
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>exposureRegion</div>
+          <div className={styles.filterItem}>
+            <span className={styles.filterLabel}>노출지역</span>
             <select
+              className={styles.select}
               value={filterForm.exposureRegion}
               onChange={updateFilter("exposureRegion")}
             >
               <option value="">전체</option>
               {EXPOSURE_REGION_OPTIONS.map((option) => (
                 <option key={option} value={option}>
-                  {option}
+                  {EXPOSURE_REGION_LABEL[option] ?? option}
                 </option>
               ))}
             </select>
-          </label>
+          </div>
 
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>keyword</div>
+          <div className={styles.filterItem}>
+            <span className={styles.filterLabel}>검색어</span>
             <input
               type="text"
+              className={styles.input}
               value={filterForm.keyword}
               onChange={updateFilter("keyword")}
-              placeholder="assetId / assetName"
+              placeholder="종목ID / 종목명"
             />
-          </label>
+          </div>
 
-          <label style={{ display: "flex", gap: 8, alignItems: "center", height: 32 }}>
+          <label className={styles.filterCheckboxWrapper}>
             <input
               type="checkbox"
               checked={filterForm.includeDeleted}
               onChange={updateFilter("includeDeleted")}
             />
-            <span>includeDeleted</span>
+            삭제 포함
           </label>
 
-          <button type="button" onClick={handleSearch} disabled={isListLoading}>
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            onClick={handleSearch}
+            disabled={isListLoading}
+          >
             {isListLoading ? "조회 중..." : "조회"}
           </button>
         </div>
       </section>
 
-      <section
-        aria-label="마스터 그리드"
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          padding: 12,
-          marginBottom: 16,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-          <strong>목록 ({total})</strong>
-          <button type="button" onClick={handleNewAsset}>
-            신규 등록
-          </button>
-        </div>
-
-        {listError ? (
-          <div style={{ color: "#b00020", marginBottom: 8 }}>{listError}</div>
-        ) : null}
-
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              {[
-                "assetId",
-                "assetName",
-                "assetType",
-                "exposureRegion",
-                "currency",
-                "deleted",
-                "updatedAt",
-              ].map((col) => (
-                <th
-                  key={col}
-                  style={{
-                    borderBottom: "1px solid #ddd",
-                    textAlign: "left",
-                    padding: "8px 6px",
-                    fontSize: 13,
-                  }}
-                >
-                  {col}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ padding: 14, color: "#666" }}>
-                  조회 조건에 맞는 자산이 없습니다.
-                </td>
-              </tr>
-            ) : (
-              items.map((item) => {
-                const isSelected = selectedAssetId === item.assetId;
-
-                return (
-                  <tr
-                    key={item.assetId}
-                    onClick={() => handleSelectRow(item.assetId)}
-                    style={{
-                      backgroundColor: isSelected ? "#f2f6ff" : "transparent",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <td style={{ borderBottom: "1px solid #eee", padding: "8px 6px" }}>
-                      {item.assetId}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #eee", padding: "8px 6px" }}>
-                      {item.assetName}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #eee", padding: "8px 6px" }}>
-                      {item.assetType}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #eee", padding: "8px 6px" }}>
-                      {item.exposureRegion}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #eee", padding: "8px 6px" }}>
-                      {item.currency}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #eee", padding: "8px 6px" }}>
-                      {String(item.deleted)}
-                    </td>
-                    <td style={{ borderBottom: "1px solid #eee", padding: "8px 6px" }}>
-                      {item.updatedAtDisplay}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </section>
-
-      <section
-        aria-label="등록 수정 패널"
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          padding: 12,
-        }}
-      >
-        <h2 style={{ margin: "0 0 12px" }}>
-          {mode === "create" ? "신규 등록" : `수정: ${selectedAssetId}`}
-        </h2>
-
-        {noticeMessage ? (
-          <div style={{ color: "#136f2d", marginBottom: 8 }}>{noticeMessage}</div>
-        ) : null}
-        {saveError ? (
-          <div style={{ color: "#b00020", marginBottom: 8 }}>{saveError}</div>
-        ) : null}
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, minmax(220px, 1fr))",
-            gap: 12,
-          }}
-        >
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>assetId</div>
-            <input
-              type="text"
-              value={assetForm.assetId}
-              onChange={updateForm("assetId")}
-              disabled={mode === "edit"}
-              placeholder="예: AAPL"
-            />
-            {fieldErrors.assetId ? (
-              <div style={{ color: "#b00020", fontSize: 12 }}>{fieldErrors.assetId}</div>
-            ) : null}
-          </label>
-
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>assetName</div>
-            <input
-              type="text"
-              value={assetForm.assetName}
-              onChange={updateForm("assetName")}
-              placeholder="예: Apple Inc."
-            />
-            {fieldErrors.assetName ? (
-              <div style={{ color: "#b00020", fontSize: 12 }}>{fieldErrors.assetName}</div>
-            ) : null}
-          </label>
-
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>assetType</div>
-            <select value={assetForm.assetType} onChange={updateForm("assetType")}>
-              <option value="">선택</option>
-              {ASSET_TYPE_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.assetType ? (
-              <div style={{ color: "#b00020", fontSize: 12 }}>{fieldErrors.assetType}</div>
-            ) : null}
-          </label>
-
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>exposureRegion</div>
-            <select
-              value={assetForm.exposureRegion}
-              onChange={updateForm("exposureRegion")}
+      {/* ── 하단: 좌우 2단 레이아웃 ─────────────────── */}
+      <div className={styles.contentRow}>
+        {/* ── 좌측 60%: Master Grid ──────────────────── */}
+        <section aria-label="마스터 그리드" className={`${styles.card} ${styles.gridPanel}`} style={{ minWidth: 0, overflow: "hidden" }}>
+          <div className={styles.gridHeader}>
+            <span className={styles.gridCount}>목록 ({total})</span>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={handleNewAsset}
             >
-              <option value="">선택</option>
-              {EXPOSURE_REGION_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            {fieldErrors.exposureRegion ? (
-              <div style={{ color: "#b00020", fontSize: 12 }}>
-                {fieldErrors.exposureRegion}
-              </div>
-            ) : null}
-          </label>
+              신규 등록
+            </button>
+          </div>
 
-          <label>
-            <div style={{ fontSize: 12, marginBottom: 4 }}>currency</div>
-            <input
-              type="text"
-              value={assetForm.currency}
-              onChange={updateForm("currency")}
-              placeholder="예: USD"
-            />
-            {fieldErrors.currency ? (
-              <div style={{ color: "#b00020", fontSize: 12 }}>{fieldErrors.currency}</div>
-            ) : null}
-          </label>
-        </div>
+          {listError ? (
+            <div className={styles.noticeError}>{listError}</div>
+          ) : null}
 
-        <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-          <button type="button" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "저장 중..." : "저장"}
-          </button>
-          <button
-            type="button"
-            onClick={requestDelete}
-            disabled={mode !== "edit" || isDeleting}
-          >
-            삭제
-          </button>
-        </div>
-      </section>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                {["종목ID", "종목명", "자산유형", "노출지역", "통화", "삭제여부", "수정일시"].map(
+                  (col) => (
+                    <th key={col}>{col}</th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className={styles.tableEmpty}>
+                    조회 조건에 맞는 자산이 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                items.map((item) => {
+                  const isSelected = selectedAssetId === item.assetId;
+                  return (
+                    <tr
+                      key={item.assetId}
+                      onClick={() => handleSelectRow(item.assetId)}
+                      className={`${styles.tableRow} ${isSelected ? styles.tableRowSelected : ""}`}
+                    >
+                      <td>{item.assetId}</td>
+                      <td>{item.assetName}</td>
+                      <td>{item.assetType}</td>
+                      <td>{item.exposureRegion}</td>
+                      <td>{item.currency}</td>
+                      <td>{String(item.deleted)}</td>
+                      <td>{item.updatedAtDisplay}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </section>
 
+        {/* ── 우측 40%: 등록/수정 Form 카드 ──────────── */}
+        <section aria-label="등록 수정 패널" className={`${styles.card} ${styles.formPanel}`} style={{ minWidth: 0, overflow: "hidden" }}>
+          <h2 className={styles.cardTitle}>
+            {mode === "create" ? "신규 등록" : `수정: ${selectedAssetId}`}
+          </h2>
+
+          {noticeMessage ? (
+            <div className={styles.noticeSuccess}>{noticeMessage}</div>
+          ) : null}
+          {saveError ? (
+            <div className={styles.noticeError}>{saveError}</div>
+          ) : null}
+
+          <div className={styles.formGrid}>
+            <div className={styles.formField}>
+              <label className={styles.formFieldLabel}>종목ID</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={assetForm.assetId}
+                onChange={updateForm("assetId")}
+                disabled={mode === "edit"}
+                placeholder="예: AAPL"
+              />
+              {fieldErrors.assetId ? (
+                <span className={styles.fieldError}>{fieldErrors.assetId}</span>
+              ) : null}
+            </div>
+
+            <div className={styles.formField}>
+              <label className={styles.formFieldLabel}>종목명</label>
+              <input
+                type="text"
+                className={styles.input}
+                value={assetForm.assetName}
+                onChange={updateForm("assetName")}
+                placeholder="예: Apple Inc."
+              />
+              {fieldErrors.assetName ? (
+                <span className={styles.fieldError}>{fieldErrors.assetName}</span>
+              ) : null}
+            </div>
+
+            <div className={styles.formField}>
+              <label className={styles.formFieldLabel}>자산유형</label>
+              <select
+                className={styles.select}
+                value={assetForm.assetType}
+                onChange={updateForm("assetType")}
+              >
+                <option value="">선택</option>
+                {ASSET_TYPE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {ASSET_TYPE_LABEL[option] ?? option}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.assetType ? (
+                <span className={styles.fieldError}>{fieldErrors.assetType}</span>
+              ) : null}
+            </div>
+
+            <div className={styles.formField}>
+              <label className={styles.formFieldLabel}>노출지역</label>
+              <select
+                className={styles.select}
+                value={assetForm.exposureRegion}
+                onChange={updateForm("exposureRegion")}
+              >
+                <option value="">선택</option>
+                {EXPOSURE_REGION_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {EXPOSURE_REGION_LABEL[option] ?? option}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.exposureRegion ? (
+                <span className={styles.fieldError}>{fieldErrors.exposureRegion}</span>
+              ) : null}
+            </div>
+
+            <div className={styles.formField}>
+              <label className={styles.formFieldLabel}>통화</label>
+              <select
+                className={styles.select}
+                value={assetForm.currency}
+                onChange={updateForm("currency")}
+              >
+                <option value="">선택</option>
+                {CURRENCY_OPTIONS.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {fieldErrors.currency ? (
+                <span className={styles.fieldError}>{fieldErrors.currency}</span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className={styles.formActions}>
+            <button
+              type="button"
+              className={styles.btnPrimary}
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? "저장 중..." : "저장"}
+            </button>
+            <button
+              type="button"
+              className={styles.btnOutline}
+              onClick={requestDelete}
+              disabled={mode !== "edit" || isDeleting}
+            >
+              삭제
+            </button>
+          </div>
+        </section>
+      </div>
+
+      {/* ── 삭제 확인 모달 ──────────────────────────── */}
       {showDeleteConfirm ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.3)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              width: 360,
-              background: "white",
-              borderRadius: 8,
-              padding: 16,
-              border: "1px solid #ddd",
-            }}
-          >
-            <p style={{ marginTop: 0 }}>
+        <div role="dialog" aria-modal="true" className={styles.modalOverlay}>
+          <div className={styles.modalBox}>
+            <p className={styles.modalTitle}>삭제 확인</p>
+            <p className={styles.modalDesc}>
               선택한 자산을 삭제(비활성) 처리하시겠습니까?
             </p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <button type="button" onClick={cancelDelete} disabled={isDeleting}>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={cancelDelete}
+                disabled={isDeleting}
+              >
                 취소
               </button>
-              <button type="button" onClick={confirmDelete} disabled={isDeleting}>
+              <button
+                type="button"
+                className={styles.btnOutline}
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
                 {isDeleting ? "처리 중..." : "확인"}
               </button>
             </div>

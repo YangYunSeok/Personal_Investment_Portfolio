@@ -23,7 +23,27 @@ export const ASSET_TYPE_OPTIONS = [
   "KRW Cash",
 ];
 
+export const ASSET_TYPE_LABEL = {
+  Stock: "주식",
+  ETF: "ETF",
+  Bond: "채권",
+  Crypto: "가상자산",
+  Commodity: "원자재",
+  "FX Cash": "외화 현금",
+  "KRW Cash": "원화 현금",
+};
+
 export const EXPOSURE_REGION_OPTIONS = ["KR", "US", "JP", "CH", "GLOBAL"];
+
+export const EXPOSURE_REGION_LABEL = {
+  KR: "국내",
+  US: "미국",
+  JP: "일본",
+  CH: "중국",
+  GLOBAL: "글로벌",
+};
+
+export const CURRENCY_OPTIONS = ["KRW", "USD", "JPY", "CNY", "EUR", "GBP", "HKD"];
 
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 

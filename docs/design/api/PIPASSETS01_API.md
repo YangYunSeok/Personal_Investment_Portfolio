@@ -1,14 +1,14 @@
 # PIPASSETS01_API
-Asset Master Screen – API SSOT
+자산 메타 마스터 – API SSOT
 
 ## 0. 원칙
-- PIPASSETS01은 **자산(종목) 마스터(참조 데이터) 관리 API**다.
+- PIPASSETS01은 **자산(종목) 메타 정보(참조 데이터) 관리 API**다.
 - 집계/평가/수익률 계산 API를 제공하지 않는다.
 - Soft Delete 정책은 `deleted` 필드를 사용한다.
 
 ---
 
-## 1. 자산 마스터 목록 조회
+## 1. 자산 메타 마스터 목록 조회
 GET /api/pip/assets
 
 ### Query Params
@@ -36,7 +36,7 @@ GET /api/pip/assets
 
 ---
 
-## 2. 자산 마스터 단건 조회
+## 2. 자산 메타 마스터 단건 조회
 GET /api/pip/assets/{assetId}
 
 ### Response
@@ -53,7 +53,7 @@ GET /api/pip/assets/{assetId}
 
 ---
 
-## 3. 자산 마스터 등록
+## 3. 자산 메타 마스터 등록
 POST /api/pip/assets
 
 ### Request
@@ -69,7 +69,7 @@ POST /api/pip/assets
 
 ---
 
-## 4. 자산 마스터 수정
+## 4. 자산 메타 마스터 수정
 PUT /api/pip/assets/{assetId}
 
 ### Request
@@ -84,7 +84,7 @@ PUT /api/pip/assets/{assetId}
 
 ---
 
-## 5. 자산 마스터 삭제 (Soft Delete)
+## 5. 자산 메타 마스터 삭제 (Soft Delete)
 DELETE /api/pip/assets/{assetId}
 
 ### Rule
