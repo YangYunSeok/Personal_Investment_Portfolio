@@ -1,7 +1,7 @@
 const express = require("express");
-const PIPASSETS01Mapper = require("./PIPASSETS01Mapper");
-const PIPASSETS01Service = require("./PIPASSETS01Service");
-const registerPIPASSETS01Controller = require("./PIPASSETS01Controller");
+const PIPASSETS01Mapper = require("./Mapper/PIPASSETS01Mapper");
+const PIPASSETS01Service = require("./Service/PIPASSETS01Service");
+const registerPIPASSETS01Controller = require("./Controller/PIPASSETS01Controller");
 
 const app = express();
 app.use(express.json());

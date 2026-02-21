@@ -45,6 +45,16 @@ export const EXPOSURE_REGION_LABEL = {
 
 export const CURRENCY_OPTIONS = ["KRW", "USD", "JPY", "CNY", "EUR", "GBP", "HKD"];
 
+export const CURRENCY_LABEL = {
+  KRW: "KRW(원)",
+  USD: "USD(달러)",
+  JPY: "JPY(엔)",
+  CNY: "CNY(위안)",
+  EUR: "EUR(유로)",
+  GBP: "GBP(파운드)",
+  HKD: "HKD(홍콩달러)",
+};
+
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 
 function normalizeString(value) {

@@ -1,37 +1,20 @@
-/**
- * ScreenID: PIPASSETS01
- * Screen Name: 전체 종목 확인 화면
- * Purpose: 자산 마스터 조회 및 관리
- * 주요 동작: 조회
- * 연관 SSOT 문서:
- * - docs/design/_index.md
- * - docs/design/ui/PIPASSETS01_UI.md
- * - docs/design/api/PIPASSETS01_API.md
- * - docs/design/model/PIPASSETS01_MODEL.md
- * - docs/design/db/PIPASSETS01_DB.md
- * 금지 규칙:
- * - 계산값 저장 금지
- * - 단일 원장 원칙 위반 금지
- * - SSOT 미정의 필드/흐름 임의 추가 금지
- */
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   createAsset,
   deleteAsset,
-  fetchAssetById,
   fetchAssetsList,
   updateAsset,
 } from "../api/PIPASSETS01.api.js";
 import {
   ASSET_TYPE_LABEL,
   ASSET_TYPE_OPTIONS,
+  CURRENCY_LABEL,
   CURRENCY_OPTIONS,
   EXPOSURE_REGION_LABEL,
   EXPOSURE_REGION_OPTIONS,
   buildAssetUpsertPayload,
   buildAssetsListQuery,
   createEmptyAssetForm,
-  mapAssetDetailToForm,
   mapAssetListResponse,
 } from "../api/PIPASSETS01.mapper.js";
 import styles from "./PIPASSETS01.module.css";
@@ -51,14 +34,20 @@ export default function PIPASSETS01() {
   const [isListLoading, setIsListLoading] = useState(false);
   const [listError, setListError] = useState("");
 
-  const [mode, setMode] = useState("create");
-  const [selectedAssetId, setSelectedAssetId] = useState("");
+  // ================== Inline Edit States ==================
+  const [drafts, setDrafts] = useState({}); // { [assetId]: { assetName, assetType, exposureRegion, currency } }
+  const [selectedRows, setSelectedRows] = useState([]); // Array of assetId
+  const [rowErrors, setRowErrors] = useState({}); // { [assetId]: error message }
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // ================== Create Modal States ==================
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [assetForm, setAssetForm] = useState(createEmptyAssetForm);
   const [fieldErrors, setFieldErrors] = useState({});
   const [saveError, setSaveError] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const [noticeMessage, setNoticeMessage] = useState("");
 
   const updateFilter = (key) => (event) => {
@@ -71,12 +60,6 @@ export default function PIPASSETS01() {
     }));
   };
 
-  const updateForm = (key) => (event) => {
-    const value = event.target.value;
-    setAssetForm((prev) => ({ ...prev, [key]: value }));
-    setFieldErrors((prev) => ({ ...prev, [key]: "" }));
-  };
-
   const loadList = async (query) => {
     setIsListLoading(true);
     setListError("");
@@ -86,6 +69,12 @@ export default function PIPASSETS01() {
       const mapped = mapAssetListResponse(response);
       setItems(mapped.items);
       setTotal(mapped.total);
+
+      // Reset inline editing state
+      setDrafts({});
+      setSelectedRows([]);
+      setRowErrors({});
+
       return mapped.items;
     } catch (error) {
       setListError(error.message || "자산 목록 조회에 실패했습니다.");
@@ -104,54 +93,186 @@ export default function PIPASSETS01() {
     await loadList(query);
   };
 
+  // ================== Inline Edit Logic ==================
+  const updateDraft = (assetId, field, value) => {
+    setNoticeMessage("");
+    setDrafts(prev => {
+      const currentDraft = prev[assetId] || {};
+      return {
+        ...prev,
+        [assetId]: {
+          ...currentDraft,
+          [field]: value
+        }
+      };
+    });
+
+    // Clear error for this row when changed
+    if (rowErrors[assetId]) {
+      setRowErrors(prev => {
+        const next = { ...prev };
+        delete next[assetId];
+        return next;
+      });
+    }
+  };
+
+  const isRowDirty = (assetId) => {
+    const draft = drafts[assetId];
+    if (!draft) return false;
+    const original = items.find(i => i.assetId === assetId);
+    if (!original) return false;
+
+    return Object.keys(draft).some(key => draft[key] !== original[key]);
+  };
+
+  const dirtyItems = useMemo(() => {
+    return items.filter(i => isRowDirty(i.assetId));
+  }, [items, drafts]);
+
+  const dirtyCount = dirtyItems.length;
+
+  const handleSaveAll = async () => {
+    if (dirtyCount === 0) return;
+
+    setIsSaving(true);
+    setNoticeMessage("");
+    setListError("");
+    setSaveError("");
+
+    let successCount = 0;
+    let failCount = 0;
+    const newErrors = { ...rowErrors };
+
+    // Parallel processing with allSettled
+    const promises = dirtyItems.map(async (item) => {
+      const draft = drafts[item.assetId];
+      const mergedForm = { ...item, ...draft };
+
+      const { payload, errors } = buildAssetUpsertPayload(mergedForm, "edit");
+      if (Object.keys(errors).length > 0) {
+        throw new Error(Object.values(errors).join(", "));
+      }
+
+      await updateAsset(item.assetId, payload);
+      return item.assetId;
+    });
+
+    const results = await Promise.allSettled(promises);
+
+    results.forEach((res, index) => {
+      const assetId = dirtyItems[index].assetId;
+      if (res.status === "fulfilled") {
+        successCount++;
+        delete newErrors[assetId];
+      } else {
+        failCount++;
+        newErrors[assetId] = res.reason.message || "저장 실패";
+      }
+    });
+
+    setRowErrors(newErrors);
+
+    if (successCount > 0) {
+      setNoticeMessage(`${successCount}건이 성공적으로 저장되었습니다.` + (failCount > 0 ? ` (${failCount}건 실패)` : ""));
+
+      // Cleanup successful drafts
+      setDrafts(prev => {
+        const next = { ...prev };
+        results.forEach((res, idx) => {
+          if (res.status === "fulfilled") {
+            delete next[dirtyItems[idx].assetId];
+          }
+        });
+        return next;
+      });
+
+      // Refresh list
+      const query = lastSearchQuery ?? buildAssetsListQuery(filterForm);
+      try {
+        const refreshedItems = await fetchAssetsList(query);
+        const mapped = mapAssetListResponse(refreshedItems);
+        // Do not use setDrafts({}) here because we want to preserve failures
+        setItems(mapped.items);
+        setTotal(mapped.total);
+      } catch (e) {
+        setListError("저장 후 재조회에 실패했습니다.");
+      }
+    } else {
+      setListError("저장에 실패했습니다.");
+    }
+
+    setIsSaving(false);
+  };
+
+  const handleCancelAll = () => {
+    setDrafts({});
+    setRowErrors({});
+    setNoticeMessage("");
+    setListError("");
+  };
+
+  const handleSelectDelete = async () => {
+    if (selectedRows.length === 0) return;
+    if (!window.confirm(`선택한 ${selectedRows.length}건을 삭제(비활성) 처리하시겠습니까?`)) return;
+
+    setIsDeleting(true);
+    setNoticeMessage("");
+    setListError("");
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const assetId of selectedRows) {
+      try {
+        await deleteAsset(assetId);
+        successCount++;
+      } catch (e) {
+        failCount++;
+      }
+    }
+
+    setNoticeMessage(`${successCount}건이 삭제 처리되었습니다.` + (failCount > 0 ? ` (${failCount}건 실패)` : ""));
+    setSelectedRows([]);
+
+    // Refresh list
+    const query = lastSearchQuery ?? buildAssetsListQuery(filterForm);
+    try {
+      const refreshedItems = await fetchAssetsList(query);
+      const mapped = mapAssetListResponse(refreshedItems);
+      setItems(mapped.items);
+      setTotal(mapped.total);
+    } catch (e) {
+      setListError("삭제 후 재조회에 실패했습니다.");
+    }
+
+    setIsDeleting(false);
+  };
+
+  // ================== Create Logic ==================
   const handleNewAsset = () => {
-    setMode("create");
-    setSelectedAssetId("");
     setAssetForm(createEmptyAssetForm());
     setFieldErrors({});
     setSaveError("");
     setNoticeMessage("");
+    setShowCreateModal(true);
   };
 
-  const handleSelectRow = async (assetId) => {
-    setMode("edit");
-    setSelectedAssetId(assetId);
-    setFieldErrors({});
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+  };
+
+  const updateForm = (key) => (event) => {
+    const value = event.target.value;
+    setAssetForm((prev) => ({ ...prev, [key]: value }));
+    setFieldErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const handleCreateSave = async () => {
     setSaveError("");
     setNoticeMessage("");
 
-    try {
-      const detail = await fetchAssetById(assetId);
-      setAssetForm(mapAssetDetailToForm(detail));
-    } catch (error) {
-      setSaveError(error.message || "자산 상세 조회에 실패했습니다.");
-    }
-  };
-
-  const reloadAfterMutation = async (assetIdForSelection) => {
-    const query = lastSearchQuery ?? buildAssetsListQuery(filterForm);
-    setLastSearchQuery(query);
-    const refreshedItems = await loadList(query);
-
-    if (!assetIdForSelection) return;
-
-    const exists = refreshedItems.some(
-      (item) => item.assetId === assetIdForSelection
-    );
-    if (!exists) {
-      setMode("create");
-      setSelectedAssetId("");
-      return;
-    }
-
-    await handleSelectRow(assetIdForSelection);
-  };
-
-  const handleSave = async () => {
-    setSaveError("");
-    setNoticeMessage("");
-
-    const { payload, errors } = buildAssetUpsertPayload(assetForm, mode);
+    const { payload, errors } = buildAssetUpsertPayload(assetForm, "create");
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -161,15 +282,12 @@ export default function PIPASSETS01() {
     setIsSaving(true);
 
     try {
-      if (mode === "create") {
-        const created = await createAsset(payload);
-        setNoticeMessage("자산이 등록되었습니다.");
-        await reloadAfterMutation(created.assetId);
-      } else {
-        await updateAsset(selectedAssetId, payload);
-        setNoticeMessage("자산이 수정되었습니다.");
-        await reloadAfterMutation(selectedAssetId);
-      }
+      await createAsset(payload);
+      setNoticeMessage("자산이 정상적으로 등록되었습니다.");
+      setShowCreateModal(false);
+
+      const query = lastSearchQuery ?? buildAssetsListQuery(filterForm);
+      await loadList(query);
     } catch (error) {
       setSaveError(error.message || "자산 마스터 저장에 실패했습니다.");
     } finally {
@@ -177,35 +295,98 @@ export default function PIPASSETS01() {
     }
   };
 
-  const requestDelete = () => {
-    setSaveError("");
-    setNoticeMessage("");
-    setShowDeleteConfirm(true);
-  };
+  const renderCreateFormFields = () => (
+    <div className={styles.formGrid}>
+      <div className={styles.formField}>
+        <label className={styles.formFieldLabel}>자산코드</label>
+        <input
+          type="text"
+          className={styles.input}
+          value={assetForm.assetId}
+          onChange={(e) => {
+            const upperValue = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+            setAssetForm((prev) => ({ ...prev, assetId: upperValue }));
+            setFieldErrors((prev) => ({ ...prev, assetId: "" }));
+          }}
+          placeholder="예: AAPL"
+        />
+        {fieldErrors.assetId ? (
+          <span className={styles.fieldError}>{fieldErrors.assetId}</span>
+        ) : null}
+      </div>
 
-  const cancelDelete = () => {
-    setShowDeleteConfirm(false);
-  };
+      <div className={styles.formField}>
+        <label className={styles.formFieldLabel}>자산명</label>
+        <input
+          type="text"
+          className={styles.input}
+          value={assetForm.assetName}
+          onChange={updateForm("assetName")}
+          placeholder="예: Apple Inc."
+        />
+        {fieldErrors.assetName ? (
+          <span className={styles.fieldError}>{fieldErrors.assetName}</span>
+        ) : null}
+      </div>
 
-  const confirmDelete = async () => {
-    setIsDeleting(true);
-    setSaveError("");
-    setNoticeMessage("");
+      <div className={styles.formField}>
+        <label className={styles.formFieldLabel}>자산유형</label>
+        <select
+          className={styles.select}
+          value={assetForm.assetType}
+          onChange={updateForm("assetType")}
+        >
+          <option value="">선택</option>
+          {ASSET_TYPE_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {ASSET_TYPE_LABEL[option] ?? option}
+            </option>
+          ))}
+        </select>
+        {fieldErrors.assetType ? (
+          <span className={styles.fieldError}>{fieldErrors.assetType}</span>
+        ) : null}
+      </div>
 
-    try {
-      await deleteAsset(selectedAssetId);
-      setShowDeleteConfirm(false);
-      setNoticeMessage("자산이 삭제(비활성) 처리되었습니다.");
-      await reloadAfterMutation("");
-      setMode("create");
-      setSelectedAssetId("");
-      setAssetForm(createEmptyAssetForm());
-    } catch (error) {
-      setSaveError(error.message || "자산 삭제 처리에 실패했습니다.");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+      <div className={styles.formField}>
+        <label className={styles.formFieldLabel}>노출지역</label>
+        <select
+          className={styles.select}
+          value={assetForm.exposureRegion}
+          onChange={updateForm("exposureRegion")}
+        >
+          <option value="">선택</option>
+          {EXPOSURE_REGION_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {EXPOSURE_REGION_LABEL[option] ?? option}
+            </option>
+          ))}
+        </select>
+        {fieldErrors.exposureRegion ? (
+          <span className={styles.fieldError}>{fieldErrors.exposureRegion}</span>
+        ) : null}
+      </div>
+
+      <div className={styles.formField}>
+        <label className={styles.formFieldLabel}>통화</label>
+        <select
+          className={styles.select}
+          value={assetForm.currency}
+          onChange={updateForm("currency")}
+        >
+          <option value="">선택</option>
+          {CURRENCY_OPTIONS.map((c) => (
+            <option key={c} value={c}>
+              {CURRENCY_LABEL[c] ?? c}
+            </option>
+          ))}
+        </select>
+        {fieldErrors.currency ? (
+          <span className={styles.fieldError}>{fieldErrors.currency}</span>
+        ) : null}
+      </div>
+    </div>
+  );
 
   return (
     <div className={styles.page}>
@@ -254,7 +435,7 @@ export default function PIPASSETS01() {
               className={styles.input}
               value={filterForm.keyword}
               onChange={updateFilter("keyword")}
-              placeholder="종목ID / 종목명"
+              placeholder="자산코드 / 자산명"
             />
           </div>
 
@@ -278,33 +459,83 @@ export default function PIPASSETS01() {
         </div>
       </section>
 
-      {/* ── 하단: 좌우 2단 레이아웃 ─────────────────── */}
-      <div className={styles.contentRow}>
-        {/* ── 좌측 60%: Master Grid ──────────────────── */}
-        <section aria-label="마스터 그리드" className={`${styles.card} ${styles.gridPanel}`} style={{ minWidth: 0, overflow: "hidden" }}>
-          <div className={styles.gridHeader}>
+      {/* ── 하단: Master Grid (Inline Edit) ──────────── */}
+      <section aria-label="마스터 그리드" className={styles.card}>
+        <div className={styles.gridHeader}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span className={styles.gridCount}>목록 ({total})</span>
+            {dirtyCount > 0 && (
+              <span className={styles.dirtyBadge}>변경사항 {dirtyCount}건</span>
+            )}
+          </div>
+          <div className={styles.toolbar}>
+            {selectedRows.length > 0 && (
+              <button
+                type="button"
+                className={styles.btnOutline}
+                onClick={handleSelectDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "삭제 중..." : "선택 삭제"}
+              </button>
+            )}
+            {dirtyCount > 0 && (
+              <>
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={handleCancelAll}
+                  disabled={isSaving}
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={handleSaveAll}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "저장 중..." : "저장"}
+                </button>
+              </>
+            )}
             <button
               type="button"
-              className={styles.btnSecondary}
+              className={dirtyCount > 0 ? styles.btnSecondary : styles.btnPrimary}
               onClick={handleNewAsset}
             >
               신규 등록
             </button>
           </div>
+        </div>
 
-          {listError ? (
-            <div className={styles.noticeError}>{listError}</div>
-          ) : null}
+        {noticeMessage ? (
+          <div className={styles.noticeSuccess}>{noticeMessage}</div>
+        ) : null}
+        {listError ? (
+          <div className={styles.noticeError}>{listError}</div>
+        ) : null}
 
+        <div style={{ overflowX: "auto" }}>
           <table className={styles.table}>
             <thead>
               <tr>
-                {["종목ID", "종목명", "자산유형", "노출지역", "통화", "삭제여부", "수정일시"].map(
-                  (col) => (
-                    <th key={col}>{col}</th>
-                  )
-                )}
+                <th style={{ width: 40, textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={items.length > 0 && selectedRows.length === items.length}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedRows(items.map((i) => i.assetId));
+                      else setSelectedRows([]);
+                    }}
+                  />
+                </th>
+                <th>자산코드</th>
+                <th>자산명</th>
+                <th>자산유형</th>
+                <th>노출지역</th>
+                <th>통화</th>
+                <th>수정일시</th>
               </tr>
             </thead>
             <tbody>
@@ -316,19 +547,86 @@ export default function PIPASSETS01() {
                 </tr>
               ) : (
                 items.map((item) => {
-                  const isSelected = selectedAssetId === item.assetId;
+                  const isDirty = isRowDirty(item.assetId);
+                  const rowError = rowErrors[item.assetId];
+                  const draft = drafts[item.assetId] || {};
+
                   return (
                     <tr
                       key={item.assetId}
-                      onClick={() => handleSelectRow(item.assetId)}
-                      className={`${styles.tableRow} ${isSelected ? styles.tableRowSelected : ""}`}
+                      className={`${styles.tableRow} ${isDirty ? styles.tableRowDirty : ""}`}
                     >
+                      <td style={{ textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedRows.includes(item.assetId)}
+                          onChange={(e) => {
+                            if (e.target.checked)
+                              setSelectedRows((prev) => [...prev, item.assetId]);
+                            else
+                              setSelectedRows((prev) =>
+                                prev.filter((id) => id !== item.assetId)
+                              );
+                          }}
+                        />
+                      </td>
                       <td>{item.assetId}</td>
-                      <td>{item.assetName}</td>
-                      <td>{item.assetType}</td>
-                      <td>{item.exposureRegion}</td>
-                      <td>{item.currency}</td>
-                      <td>{String(item.deleted)}</td>
+                      <td>
+                        <input
+                          type="text"
+                          className={styles.gridInput}
+                          value={draft.assetName ?? item.assetName}
+                          onChange={(e) =>
+                            updateDraft(item.assetId, "assetName", e.target.value)
+                          }
+                        />
+                        {rowError && <span className={styles.rowError}>{rowError}</span>}
+                      </td>
+                      <td>
+                        <select
+                          className={styles.gridSelect}
+                          value={draft.assetType ?? item.assetType}
+                          onChange={(e) =>
+                            updateDraft(item.assetId, "assetType", e.target.value)
+                          }
+                        >
+                          {ASSET_TYPE_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {ASSET_TYPE_LABEL[opt]}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          className={styles.gridSelect}
+                          value={draft.exposureRegion ?? item.exposureRegion}
+                          onChange={(e) =>
+                            updateDraft(item.assetId, "exposureRegion", e.target.value)
+                          }
+                        >
+                          {EXPOSURE_REGION_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {EXPOSURE_REGION_LABEL[opt]}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          className={styles.gridSelect}
+                          value={draft.currency ?? item.currency}
+                          onChange={(e) =>
+                            updateDraft(item.assetId, "currency", e.target.value)
+                          }
+                        >
+                          {CURRENCY_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {CURRENCY_LABEL[opt]}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
                       <td>{item.updatedAtDisplay}</td>
                     </tr>
                   );
@@ -336,152 +634,39 @@ export default function PIPASSETS01() {
               )}
             </tbody>
           </table>
-        </section>
+        </div>
+      </section>
 
-        {/* ── 우측 40%: 등록/수정 Form 카드 ──────────── */}
-        <section aria-label="등록 수정 패널" className={`${styles.card} ${styles.formPanel}`} style={{ minWidth: 0, overflow: "hidden" }}>
-          <h2 className={styles.cardTitle}>
-            {mode === "create" ? "신규 등록" : `수정: ${selectedAssetId}`}
-          </h2>
-
-          {noticeMessage ? (
-            <div className={styles.noticeSuccess}>{noticeMessage}</div>
-          ) : null}
-          {saveError ? (
-            <div className={styles.noticeError}>{saveError}</div>
-          ) : null}
-
-          <div className={styles.formGrid}>
-            <div className={styles.formField}>
-              <label className={styles.formFieldLabel}>종목ID</label>
-              <input
-                type="text"
-                className={styles.input}
-                value={assetForm.assetId}
-                onChange={updateForm("assetId")}
-                disabled={mode === "edit"}
-                placeholder="예: AAPL"
-              />
-              {fieldErrors.assetId ? (
-                <span className={styles.fieldError}>{fieldErrors.assetId}</span>
-              ) : null}
-            </div>
-
-            <div className={styles.formField}>
-              <label className={styles.formFieldLabel}>종목명</label>
-              <input
-                type="text"
-                className={styles.input}
-                value={assetForm.assetName}
-                onChange={updateForm("assetName")}
-                placeholder="예: Apple Inc."
-              />
-              {fieldErrors.assetName ? (
-                <span className={styles.fieldError}>{fieldErrors.assetName}</span>
-              ) : null}
-            </div>
-
-            <div className={styles.formField}>
-              <label className={styles.formFieldLabel}>자산유형</label>
-              <select
-                className={styles.select}
-                value={assetForm.assetType}
-                onChange={updateForm("assetType")}
-              >
-                <option value="">선택</option>
-                {ASSET_TYPE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {ASSET_TYPE_LABEL[option] ?? option}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.assetType ? (
-                <span className={styles.fieldError}>{fieldErrors.assetType}</span>
-              ) : null}
-            </div>
-
-            <div className={styles.formField}>
-              <label className={styles.formFieldLabel}>노출지역</label>
-              <select
-                className={styles.select}
-                value={assetForm.exposureRegion}
-                onChange={updateForm("exposureRegion")}
-              >
-                <option value="">선택</option>
-                {EXPOSURE_REGION_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {EXPOSURE_REGION_LABEL[option] ?? option}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.exposureRegion ? (
-                <span className={styles.fieldError}>{fieldErrors.exposureRegion}</span>
-              ) : null}
-            </div>
-
-            <div className={styles.formField}>
-              <label className={styles.formFieldLabel}>통화</label>
-              <select
-                className={styles.select}
-                value={assetForm.currency}
-                onChange={updateForm("currency")}
-              >
-                <option value="">선택</option>
-                {CURRENCY_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-              {fieldErrors.currency ? (
-                <span className={styles.fieldError}>{fieldErrors.currency}</span>
-              ) : null}
-            </div>
-          </div>
-
-          <div className={styles.formActions}>
-            <button
-              type="button"
-              className={styles.btnPrimary}
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              {isSaving ? "저장 중..." : "저장"}
-            </button>
-            <button
-              type="button"
-              className={styles.btnOutline}
-              onClick={requestDelete}
-              disabled={mode !== "edit" || isDeleting}
-            >
-              삭제
-            </button>
-          </div>
-        </section>
-      </div>
-
-      {/* ── 삭제 확인 모달 ──────────────────────────── */}
-      {showDeleteConfirm ? (
+      {/* ── 신규 등록 모달 ──────────────────────────── */}
+      {showCreateModal ? (
         <div role="dialog" aria-modal="true" className={styles.modalOverlay}>
-          <div className={styles.modalBox}>
-            <p className={styles.modalTitle}>삭제 확인</p>
-            <p className={styles.modalDesc}>
-              선택한 자산을 삭제(비활성) 처리하시겠습니까?
-            </p>
-            <div className={styles.modalActions}>
+          <div
+            className={styles.modalBox}
+            style={{ width: "500px", maxWidth: "90%" }}
+          >
+            <p className={styles.modalTitle}>자산 신규 등록</p>
+            {saveError ? (
+              <div className={styles.noticeError}>{saveError}</div>
+            ) : null}
+
+            {renderCreateFormFields()}
+
+            <div className={styles.modalActions} style={{ marginTop: 24 }}>
               <button
                 type="button"
                 className={styles.btnSecondary}
-                onClick={cancelDelete}
-                disabled={isDeleting}
+                onClick={closeCreateModal}
+                disabled={isSaving}
               >
                 취소
               </button>
               <button
                 type="button"
-                className={styles.btnOutline}
-                onClick={confirmDelete}
-                disabled={isDeleting}
+                className={styles.btnPrimary}
+                onClick={handleCreateSave}
+                disabled={isSaving}
               >
-                {isDeleting ? "처리 중..." : "확인"}
+                {isSaving ? "저장 중..." : "저장"}
               </button>
             </div>
           </div>
