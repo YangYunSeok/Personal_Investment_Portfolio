@@ -1,0 +1,2 @@
+INDEX VERSION 1.134+C:\Personal_Investment_Portfolio\.metadata\.plugins\org.eclipse.jdt.core
+1865797976.index
