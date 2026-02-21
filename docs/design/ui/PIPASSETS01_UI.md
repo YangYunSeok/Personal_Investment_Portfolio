@@ -34,8 +34,8 @@ PIPASSETS01 ?■К╘╢??**?░Л┌╟(Л╒┘К╙╘) К╘■М? ?∙КЁ╢ Й╢─К╕?UI**К╔??∙Л²≤?°К▀╓.
 | assetType | ?░Л┌╟ ?═М≤∙ |
 | exposureRegion | ?╦Л╤° Л╖─??|
 | currency | Й╠╟К·≤ ?╣М≥■ |
-| deleted | Soft Delete ?│М┐° |
-| updatedAt | ?≤Л═∙ ?°Й╟│ |
+| deleted | Soft Delete ╩Себ (DB: DEL_YN('N'/'Y') ╦егн) |
+| updatedAt | ╪Жа╓ ╫ц╟╒ (DB: MOD_DT ╦егн) |
 
 ---
 

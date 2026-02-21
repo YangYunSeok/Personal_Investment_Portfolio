@@ -63,9 +63,9 @@ SSOT 해석이 필요할 경우, 아래 우선순위를 절대적으로 따른�
 - **계산 결과 저장 금지**
 
 ### 2.3 Soft Delete 정책
-- 원장(Transaction) 삭제 상태는 `deleted` 필드로 정의한다.
-- `deleted = false`: 활성 데이터(기본 조회 대상)
-- `deleted = true`: 소프트 삭제 데이터(기본 조회 제외)
+- 논리: deleted(boolean)
+- DB: DEL_YN('N' 활성 / 'Y' 삭제)
+- 기본 조회: DEL_YN='N' (또는 deleted=false)
 
 ---
 

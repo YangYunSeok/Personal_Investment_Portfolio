@@ -28,8 +28,8 @@
 - 기준 통화: **KRW**
 - `fxRate`: **1 단위 외화 = KRW 얼마**
 - `tradeCurrency != KRW` 인 경우 `fxRate` 필수
-- 삭제는 **Soft Delete**
-  - 기본 조회 조건: `deleted = false`
+- 삭제는 **Soft Delete** (DB: DEL_YN('N'/'Y') 매핑)
+  - 기본 조회 조건: `deleted = false` (DB: DEL_YN='N')
 
 ---
 

@@ -4,7 +4,7 @@
 ## 0. 원칙
 - PIPASSETS01은 **자산(종목) 메타 정보(참조 데이터) 관리 API**다.
 - 집계/평가/수익률 계산 API를 제공하지 않는다.
-- Soft Delete 정책은 `deleted` 필드를 사용한다.
+- Soft Delete 정책은 `deleted` 필드를 사용한다. (DB: DEL_YN('N'/'Y') 매핑)
 
 ---
 
@@ -88,8 +88,8 @@ PUT /api/pip/assets/{assetId}
 DELETE /api/pip/assets/{assetId}
 
 ### Rule
-- 물리 삭제 대신 `deleted = true`로 처리한다.
-- 기본 조회는 `deleted = false`만 포함한다.
+- 물리 삭제 대신 `deleted = true`로 처리한다. (DB: DEL_YN='Y' 매핑)
+- 기본 조회는 `deleted = false`만 포함한다. (DB: DEL_YN='N' 매핑)
 
 ---
 

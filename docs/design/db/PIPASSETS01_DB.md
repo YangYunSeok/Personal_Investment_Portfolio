@@ -16,15 +16,15 @@ PIPASSETS01 화면의 **자산(종목) 마스터 저장 범위와 제약**을 �
 | asset_type | 자산 유형 |
 | exposure_region | 노출 지역 |
 | currency | 거래 통화 |
-| deleted | Soft Delete 상태 |
-| created_at | 생성 시각 |
-| updated_at | 수정 시각 |
+| DEL_YN | Soft Delete 상태 ('N'/'Y') |
+| REG_DT | 생성 시각 |
+| MOD_DT | 수정 시각 |
 
 ---
 
 ## 2. 조회/저장 규칙
-- 기본 조회 조건: `deleted = false`
-- 삭제는 물리 삭제가 아니라 `deleted = true` 처리
+- 기본 조회 조건: DEL_YN = 'N'
+- 삭제는 물리 삭제가 아니라 DEL_YN = 'Y' 처리
 - 원장(Transaction)은 `asset_id`를 FK로 참조
 
 ---

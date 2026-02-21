@@ -73,9 +73,9 @@
 - `exposureRegion` : ExposureRegion
 - `transactionType` : TransactionType
 - `memo` : string? (optional)
-- `deleted` : boolean (soft delete)
-- `createdAt` : datetime
-- `updatedAt` : datetime
+- `deleted` : boolean (soft delete). DB: DEL_YN('N'/'Y') 매핑
+- `createdAt` : datetime. DB: REG_DT 매핑
+- `updatedAt` : datetime. DB: MOD_DT 매핑
 
 ### 4.2 가격/수량/금액
 - `quantity` : number? (거래유형에 따라 필수/금지)
@@ -164,4 +164,4 @@
 
 - 소수점 정밀도: `quantity`, `unitPrice`, `tradeAmount`, `fxRate`는 소수 허용 (물리 설계에서 DECIMAL로 고정)
 - `tradeDate` 미래 날짜 허용 여부는 정책으로 남김 (v0.1: 허용)
-- soft delete는 `deleted=true`로 표시하며 기본 조회에서 제외
+- soft delete는 `deleted=true`로 표시하며 기본 조회에서 제외 (DB: DEL_YN='Y' 처리)

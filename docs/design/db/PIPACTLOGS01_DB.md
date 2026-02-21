@@ -26,12 +26,12 @@
 - trade_currency, fx_rate
 - from_currency, to_currency
 - memo
-- deleted
-- created_at, updated_at
+- DEL_YN
+- REG_DT, MOD_DT
 
 Soft Delete 정책:
-- `deleted = false` : 활성(기본 조회 대상)
-- `deleted = true` : 소프트 삭제(기본 조회 제외)
+- DEL_YN = 'N' : 활성(기본 조회 대상)
+- DEL_YN = 'Y' : 소프트 삭제(기본 조회 제외)
 
 ---
 
@@ -45,7 +45,7 @@ Soft Delete 정책:
 - (account_id, trade_date desc)
 - (asset_id, trade_date desc)
 - (transaction_type, trade_date desc)
-- (deleted)
+- (DEL_YN)
 
 ---
 

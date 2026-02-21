@@ -32,9 +32,9 @@ Asset Master Screen – Model SSOT
 | assetType | Stock / ETF / Bond / Crypto / Commodity / FX Cash / KRW Cash |
 | exposureRegion | KR / US / JP / CH / GLOBAL |
 | currency | 거래 통화 (ISO 4217) |
-| deleted | Soft Delete 상태 (`false`: 활성, `true`: 비활성) |
-| createdAt | 생성 시각 |
-| updatedAt | 수정 시각 |
+| deleted | Soft Delete 상태 (`false`: 활성, `true`: 비활성). DB: DEL_YN('N'/'Y') 매핑 |
+| createdAt | 생성 시각. DB: REG_DT 매핑 |
+| updatedAt | 수정 시각. DB: MOD_DT 매핑 |
 
 ---
 
@@ -54,8 +54,8 @@ Asset Master Screen – Model SSOT
 ---
 
 ## 5. 상태 규칙
-- 기본 조회 대상은 `deleted = false` 자산이다.
-- 삭제는 물리 삭제가 아니라 `deleted = true`로 처리한다.
+- 기본 조회 대상은 `deleted = false` 자산이다. (DB: DEL_YN='N')
+- 삭제는 물리 삭제가 아니라 `deleted = true`로 처리한다. (DB: DEL_YN='Y')
 - 원장에서 사용 이력이 있는 자산도 Soft Delete만 허용한다.
 
 ---
