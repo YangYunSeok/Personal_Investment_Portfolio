@@ -1,8 +1,5 @@
+import PIPASSETS01 from "./screens/PIPASSETS01.jsx";
+
 export default function App() {
-  return (
-    <div style={{ padding: 24 }}>
-      <h1>PIP App OK</h1>
-      <p>If you can see this, React is rendering.</p>
-    </div>
-  );
+  return <PIPASSETS01 />;
 }
