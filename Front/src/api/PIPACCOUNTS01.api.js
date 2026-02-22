@@ -25,7 +25,7 @@ export async function createAccount(data) {
 }
 
 export async function updateAccount(id, data) {
-  const res = await fetch(`${BASE_URL}/${id}`, {
+  const res = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -38,13 +38,13 @@ export async function updateAccount(id, data) {
 }
 
 export async function deleteAccount(id) {
-  const res = await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
+  const res = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete account");
   return res.json();
 }
 
 export async function restoreAccount(id) {
-  const res = await fetch(`${BASE_URL}/${id}/restore`, { method: "POST" });
+  const res = await fetch(`${BASE_URL}/${encodeURIComponent(id)}/restore`, { method: "POST" });
   if (!res.ok) throw new Error("Failed to restore account");
   return res.json();
 }

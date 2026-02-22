@@ -222,26 +222,7 @@ export default function PIPMETAMST01() {
         }
     };
 
-    const handleAccountDelete = async () => {
-        if (selectedAccountRows.length === 0) return;
-        if (!window.confirm("삭제하시겠습니까?")) return;
-        setIsDeleting(true);
-        for (const id of selectedAccountRows) {
-            try { await deleteAccount(id); } catch (e) { }
-        }
-        await loadAccounts();
-        setIsDeleting(false);
-    };
 
-    const handleAccountRestore = async () => {
-        if (selectedAccountRows.length === 0) return;
-        setIsDeleting(true);
-        for (const id of selectedAccountRows) {
-            try { await restoreAccount(id); } catch (e) { }
-        }
-        await loadAccounts();
-        setIsDeleting(false);
-    };
 
     // ================== Utils ==================
     const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -410,7 +391,23 @@ export default function PIPMETAMST01() {
                             <span className={styles.gridCount}>계좌 목록 ({total})</span>
                             <div className={styles.toolbar}>
                                 {selectedAccountRows.length > 0 && (
-                                    <button className={styles.btnOutline} onClick={accountItems.find(i => selectedAccountRows.includes(i.id))?.delYn === 'Y' ? handleAccountRestore : handleAccountDelete}>
+                                    <button className={styles.btnOutline} onClick={async () => {
+                                        setIsDeleting(true);
+                                        setListError("");
+                                        try {
+                                            for (const id of selectedAccountRows) {
+                                                const item = accountItems.find(i => i.id === id);
+                                                if (item?.delYn === 'Y') await restoreAccount(id);
+                                                else await deleteAccount(id);
+                                            }
+                                            setNoticeMessage("작업이 완료되었습니다.");
+                                            await loadAccounts();
+                                        } catch (err) {
+                                            setListError(err.message || "삭제/복원 처리 중 오류 발생");
+                                        } finally {
+                                            setIsDeleting(false);
+                                        }
+                                    }}>
                                         {accountItems.find(i => selectedAccountRows.includes(i.id))?.delYn === 'Y' ? "선택 복원" : "선택 삭제"}
                                     </button>
                                 )}

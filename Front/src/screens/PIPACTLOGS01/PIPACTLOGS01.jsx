@@ -11,21 +11,28 @@ import {
 } from "../../api/PIPACTLOGS01.api";
 import styles from "./PIPACTLOGS01.module.css";
 
-const initialFilters = {
-    from: "",
-    to: "",
-    accountId: "",
-    assetType: "",
-    exposureRegion: "",
-    transactionType: "",
-    tradeCurrency: "",
-    keyword: "",
-    includeDeleted: false
+const getInitialFilters = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return {
+        from: `${year}-${month}-01`,
+        to: `${year}-${month}-${day}`,
+        accountId: "",
+        assetType: "",
+        exposureRegion: "",
+        transactionType: "",
+        tradeCurrency: "",
+        keyword: "",
+        includeDeleted: false
+    };
 };
 
 export default function PIPACTLOGS01() {
     const [items, setItems] = useState([]);
-    const [filters, setFilters] = useState(initialFilters);
+    const [filters, setFilters] = useState(getInitialFilters);
     const [accounts, setAccounts] = useState([]);
     const [assets, setAssets] = useState([]);
     const [isListLoading, setIsListLoading] = useState(false);
