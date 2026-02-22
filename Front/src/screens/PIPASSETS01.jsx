@@ -489,23 +489,35 @@ export default function PIPASSETS01() {
             />
           </div>
 
-          <label className={styles.filterCheckboxWrapper}>
-            <input
-              type="checkbox"
-              checked={filterForm.includeDeleted}
-              onChange={updateFilter("includeDeleted")}
-            />
-            삭제 포함
-          </label>
+          <div className={styles.filterItem}>
+            <span className={styles.filterLabel}>기타</span>
+            <label className={styles.filterCheckboxWrapper}>
+              <input
+                type="checkbox"
+                checked={filterForm.includeDeleted}
+                onChange={updateFilter("includeDeleted")}
+                style={{ width: "16px", height: "16px" }}
+              />
+              삭제 포함
+            </label>
+          </div>
+        </div>
 
+        <div className={styles.filterActions}>
           <button
             type="button"
             className={`${styles.btnPrimary} ${styles.btnSearch}`}
             onClick={handleSearch}
             disabled={isListLoading}
           >
-            {isListLoading && <div className={styles.spinner} />}
-            <span>조회</span>
+            {isListLoading ? (
+              <>
+                <div className={styles.spinner} style={{ marginRight: 8 }} />
+                조회 중...
+              </>
+            ) : (
+              "조회"
+            )}
           </button>
         </div>
       </section>

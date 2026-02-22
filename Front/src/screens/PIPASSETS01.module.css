@@ -1,8 +1,5 @@
 /* ─── 전체 페이지 래퍼 ─────────────────────────────── */
 .page {
-  min-height: 100vh;
-  background: #f7f9fc;
-  padding: 28px 32px;
   box-sizing: border-box;
   color: #111;
   font-family: 'Inter', 'Pretendard', sans-serif;
@@ -14,7 +11,37 @@
   font-size: 24px;
   font-weight: 700;
   color: #111;
-  margin: 0 0 24px;
+  margin: 0 0 16px;
+}
+
+/* ─── 탭 레이아웃 ───────────────────────────────────── */
+.tabsContainer {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #dde3ec;
+}
+
+.tab {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #2f6fed;
+  background: #f0f7ff;
+}
+
+.activeTab {
+  color: #2f6fed;
+  border-bottom-color: #2f6fed;
 }
 
 /* ─── 공통 카드 ──────────────────────────────────── */
@@ -39,10 +66,10 @@
 
 /* ─── 필터 카드 ──────────────────────────────────── */
 .filterBar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
   align-items: flex-end;
-  gap: 12px;
 }
 
 .filterItem {
@@ -62,11 +89,17 @@
 .filterCheckboxWrapper {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding-bottom: 1px;
-  white-space: nowrap;
-  font-size: 13px;
+  gap: 8px;
+  height: 36px;
+  font-size: 14px;
   color: #444;
+  cursor: pointer;
+}
+
+.filterActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
 
 .filterCheckboxWrapper input[type='checkbox'] {

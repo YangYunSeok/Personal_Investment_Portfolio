@@ -89,7 +89,7 @@ SSOT 해석이 필요할 경우, 아래 우선순위를 절대적으로 따른�
 | ScreenID | MODEL | UI | API | DB | 역할 |
 |---|---|---|---|---|---|
 | **PIPACTLOGS01** | [MODEL](./model/PIPACTLOGS01_MODEL.md) | [UI](./ui/PIPACTLOGS01_UI.md) | [API](./api/PIPACTLOGS01_API.md) | [DB](./db/PIPACTLOGS01_DB.md) | 모든 투자 활동의 단일 원장 입력/관리(매수/매도/배당/이자/입출금/세금/수수료/환전 포함) |
-| **PIPASSETS01** | [MODEL](./model/PIPASSETS01_MODEL.md) | [UI](./ui/PIPASSETS01_UI.md) | [API](./api/PIPASSETS01_API.md) | [DB](./db/PIPASSETS01_DB.md) | 자산(종목) 메타 정보(참조 데이터) 관리 |
+| **PIPMETAMST01** | [MODEL](./model/PIPMETAMST01_MODEL.md) | [UI](./ui/PIPMETAMST01_UI.md) | [API](./api/PIPMETAMST01_API.md) | [DB](./db/PIPMETAMST01_DB.md) | 메타 정보 관리 (자산/계좌) |
 | **PIPPOSHLDS01** | [MODEL](./model/PIPPOSHLDS01_MODEL.md) | [UI](./ui/PIPPOSHLDS01_UI.md) | [API](./api/PIPPOSHLDS01_API.md) | [DB](./db/PIPPOSHLDS01_DB.md) | 포지션(계좌/자산/현금) 조회 – 원장 기반 계산 결과, 계산값 저장 금지 |
 | **PIPDASHS01** | [MODEL](./model/PIPDASHS01_MODEL.md) | [UI](./ui/PIPDASHS01_UI.md) | [API](./api/PIPDASHS01_API.md) | [DB](./db/PIPDASHS01_DB.md) | 대시보드(요약/시각화) – 계산값 저장 금지, 조회 중심 |
 | **PIPFXS01** | [MODEL](./model/PIPFXS01_MODEL.md) | [UI](./ui/PIPFXS01_UI.md) | [API](./api/PIPFXS01_API.md) | [DB](./db/PIPFXS01_DB.md) | 환전(FX) 관리/입력/조회 |
@@ -99,7 +99,7 @@ SSOT 해석이 필요할 경우, 아래 우선순위를 절대적으로 따른�
 ## 5. 화면 간 데이터 흐름
 
 ```
-PIPASSETS01 → PIPACTLOGS01 / PIPFXS01 → PIPPOSHLDS01 → PIPDASHS01
+PIPMETAMST01 → PIPACTLOGS01 / PIPFXS01 → PIPPOSHLDS01 → PIPDASHS01
 ```
 
 ---
