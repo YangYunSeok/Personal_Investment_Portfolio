@@ -473,7 +473,12 @@ export default function PIPASSETS01() {
               className={styles.input}
               value={filterForm.keyword}
               onChange={updateFilter("keyword")}
-              placeholder="자산코드 / 자산명"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearch();
+                }
+              }}
+              placeholder="자산명"
             />
           </div>
 

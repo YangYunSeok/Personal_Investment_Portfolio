@@ -32,8 +32,8 @@ class PIPASSETS01Mapper {
     }
 
     if (keyword) {
-      query += ` AND (ASSET_ID LIKE ? OR ASSET_NM LIKE ?)`;
-      params.push(`%${keyword}%`, `%${keyword}%`);
+      query += ` AND ASSET_NM LIKE ?`;
+      params.push(`%${keyword}%`);
     }
 
     query += ` ORDER BY ASSET_ID ASC`;
