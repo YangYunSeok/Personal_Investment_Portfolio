@@ -51,6 +51,13 @@ export default function PIPASSETS01() {
 
   const [noticeMessage, setNoticeMessage] = useState("");
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   const updateFilter = (key) => (event) => {
     const value =
       key === "includeDeleted" ? event.target.checked : event.target.value;
@@ -767,6 +774,25 @@ export default function PIPASSETS01() {
           </div>
         ) : null
       }
+      <button
+        type="button"
+        className={styles.scrollTopBtn}
+        onClick={scrollToTop}
+        aria-label="맨 위로 가기"
+      >
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+      </button>
     </div >
   );
 }
