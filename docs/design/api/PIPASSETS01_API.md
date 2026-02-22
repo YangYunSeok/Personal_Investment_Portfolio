@@ -93,6 +93,14 @@ DELETE /api/pip/assets/{assetId}
 
 ---
 
+## 5-1. 자산 메타 마스터 복원 (Re-activate)
+POST /api/pip/assets/{assetId}/restore
+
+### Rule
+- 비활성(삭제) 처리된 자산을 다시 `deleted = false`로 처리한다. (DB: DEL_YN='N' 매핑)
+
+---
+
 ## 6. 금지 사항
 - 자산 상세 집계(평가금액/수익률) API 제공 금지
 - 계산 결과 저장 API 제공 금지

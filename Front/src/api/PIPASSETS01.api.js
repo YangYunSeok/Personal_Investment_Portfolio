@@ -79,3 +79,9 @@ export function deleteAsset(assetId) {
     method: "DELETE",
   });
 }
+
+export function restoreAsset(assetId) {
+  return request(`${ASSETS_BASE_PATH}/${encodeURIComponent(assetId)}/restore`, {
+    method: "POST",
+  });
+}

@@ -1,107 +1,122 @@
+const pool = require("../db");
+
 class PIPASSETS01Mapper {
-  constructor() {
-    this.assets = new Map();
+  async list({ assetType, exposureRegion, keyword, includeDeleted }) {
+    let query = `
+      SELECT 
+        ASSET_ID AS assetId,
+        ASSET_NM AS assetName,
+        ASSET_TP_CD AS assetType,
+        EXPOSURE_REGION AS exposureRegion,
+        TRADE_CCY_CD AS currency,
+        DEL_YN AS deleted,
+        REG_DT AS createdAt,
+        MOD_DT AS updatedAt
+      FROM pip_assets
+      WHERE 1=1
+    `;
+    const params = [];
 
-    this.seed([
-      {
-        assetId: "AAPL",
-        assetName: "Apple Inc.",
-        assetType: "Stock",
-        exposureRegion: "US",
-        currency: "USD",
-      },
-      {
-        assetId: "069500",
-        assetName: "KODEX 200",
-        assetType: "ETF",
-        exposureRegion: "KR",
-        currency: "KRW",
-      },
+    if (!includeDeleted) {
+      query += ` AND DEL_YN = 'N'`;
+    }
+
+    if (assetType) {
+      query += ` AND ASSET_TP_CD = ?`;
+      params.push(assetType);
+    }
+
+    if (exposureRegion) {
+      query += ` AND EXPOSURE_REGION = ?`;
+      params.push(exposureRegion);
+    }
+
+    if (keyword) {
+      query += ` AND (ASSET_ID LIKE ? OR ASSET_NM LIKE ?)`;
+      params.push(`%${keyword}%`, `%${keyword}%`);
+    }
+
+    query += ` ORDER BY ASSET_ID ASC`;
+
+    const [rows] = await pool.query(query, params);
+    return rows.map((r) => ({ ...r, deleted: r.deleted === "Y" }));
+  }
+
+  async findById(assetId) {
+    const query = `
+      SELECT 
+        ASSET_ID AS assetId,
+        ASSET_NM AS assetName,
+        ASSET_TP_CD AS assetType,
+        EXPOSURE_REGION AS exposureRegion,
+        TRADE_CCY_CD AS currency,
+        DEL_YN AS deleted,
+        REG_DT AS createdAt,
+        MOD_DT AS updatedAt
+      FROM pip_assets
+      WHERE ASSET_ID = ?
+    `;
+    const [rows] = await pool.query(query, [assetId]);
+    if (rows.length === 0) return null;
+    const r = rows[0];
+    return { ...r, deleted: r.deleted === "Y" };
+  }
+
+  async create(payload) {
+    const query = `
+      INSERT INTO pip_assets 
+        (ASSET_ID, ASSET_NM, ASSET_TP_CD, EXPOSURE_REGION, TRADE_CCY_CD, DEL_YN)
+      VALUES (?, ?, ?, ?, ?, 'N')
+    `;
+    await pool.query(query, [
+      payload.assetId,
+      payload.assetName,
+      payload.assetType,
+      payload.exposureRegion,
+      payload.currency,
     ]);
+    return this.findById(payload.assetId);
   }
 
-  seed(list) {
-    list.forEach((item) => {
-      const now = new Date().toISOString();
-      this.assets.set(item.assetId, {
-        ...item,
-        deleted: false,
-        createdAt: now,
-        updatedAt: now,
-      });
-    });
+  async update(assetId, payload) {
+    const query = `
+      UPDATE pip_assets
+      SET 
+        ASSET_NM = ?,
+        ASSET_TP_CD = ?,
+        EXPOSURE_REGION = ?,
+        TRADE_CCY_CD = ?,
+        MOD_DT = CURRENT_TIMESTAMP(3)
+      WHERE ASSET_ID = ?
+    `;
+    await pool.query(query, [
+      payload.assetName,
+      payload.assetType,
+      payload.exposureRegion,
+      payload.currency,
+      assetId,
+    ]);
+    return this.findById(assetId);
   }
 
-  list({ assetType, exposureRegion, keyword, includeDeleted }) {
-    const keywordLower = (keyword ?? "").toLowerCase();
-    const rows = Array.from(this.assets.values()).filter((row) => {
-      if (!includeDeleted && row.deleted) return false;
-      if (assetType && row.assetType !== assetType) return false;
-      if (exposureRegion && row.exposureRegion !== exposureRegion) return false;
-
-      if (keywordLower) {
-        const target = `${row.assetId} ${row.assetName}`.toLowerCase();
-        if (!target.includes(keywordLower)) return false;
-      }
-
-      return true;
-    });
-
-    rows.sort((a, b) => a.assetId.localeCompare(b.assetId));
-    return rows;
+  async softDelete(assetId) {
+    const query = `
+      UPDATE pip_assets
+      SET DEL_YN = 'Y', MOD_DT = CURRENT_TIMESTAMP(3)
+      WHERE ASSET_ID = ?
+    `;
+    await pool.query(query, [assetId]);
+    return this.findById(assetId);
   }
 
-  findById(assetId) {
-    return this.assets.get(assetId) ?? null;
-  }
-
-  create(payload) {
-    const now = new Date().toISOString();
-
-    const row = {
-      assetId: payload.assetId,
-      assetName: payload.assetName,
-      assetType: payload.assetType,
-      exposureRegion: payload.exposureRegion,
-      currency: payload.currency,
-      deleted: false,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    this.assets.set(row.assetId, row);
-    return row;
-  }
-
-  update(assetId, payload) {
-    const current = this.assets.get(assetId);
-    if (!current) return null;
-
-    const updated = {
-      ...current,
-      assetName: payload.assetName,
-      assetType: payload.assetType,
-      exposureRegion: payload.exposureRegion,
-      currency: payload.currency,
-      updatedAt: new Date().toISOString(),
-    };
-
-    this.assets.set(assetId, updated);
-    return updated;
-  }
-
-  softDelete(assetId) {
-    const current = this.assets.get(assetId);
-    if (!current) return null;
-
-    const deleted = {
-      ...current,
-      deleted: true,
-      updatedAt: new Date().toISOString(),
-    };
-
-    this.assets.set(assetId, deleted);
-    return deleted;
+  async restore(assetId) {
+    const query = `
+      UPDATE pip_assets
+      SET DEL_YN = 'N', MOD_DT = CURRENT_TIMESTAMP(3)
+      WHERE ASSET_ID = ?
+    `;
+    await pool.query(query, [assetId]);
+    return this.findById(assetId);
   }
 }
 

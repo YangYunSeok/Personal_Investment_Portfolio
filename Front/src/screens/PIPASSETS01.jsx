@@ -4,6 +4,7 @@ import {
   deleteAsset,
   fetchAssetsList,
   updateAsset,
+  restoreAsset,
 } from "../api/PIPASSETS01.api.js";
 import {
   ASSET_TYPE_LABEL,
@@ -249,6 +250,43 @@ export default function PIPASSETS01() {
     setIsDeleting(false);
   };
 
+  const handleSelectRestore = async () => {
+    if (selectedRows.length === 0) return;
+    if (!window.confirm(`선택한 ${selectedRows.length}건을 복원(활성화) 처리하시겠습니까?`)) return;
+
+    setIsDeleting(true);
+    setNoticeMessage("");
+    setListError("");
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const assetId of selectedRows) {
+      try {
+        await restoreAsset(assetId);
+        successCount++;
+      } catch (e) {
+        failCount++;
+      }
+    }
+
+    setNoticeMessage(`${successCount}건이 복원 처리되었습니다.` + (failCount > 0 ? ` (${failCount}건 실패)` : ""));
+    setSelectedRows([]);
+
+    // Refresh list
+    const query = lastSearchQuery ?? buildAssetsListQuery(filterForm);
+    try {
+      const refreshedItems = await fetchAssetsList(query);
+      const mapped = mapAssetListResponse(refreshedItems);
+      setItems(mapped.items);
+      setTotal(mapped.total);
+    } catch (e) {
+      setListError("복원 후 재조회에 실패했습니다.");
+    }
+
+    setIsDeleting(false);
+  };
+
   // ================== Create Logic ==================
   const handleNewAsset = () => {
     setAssetForm(createEmptyAssetForm());
@@ -450,17 +488,18 @@ export default function PIPASSETS01() {
 
           <button
             type="button"
-            className={styles.btnPrimary}
+            className={`${styles.btnPrimary} ${styles.btnSearch}`}
             onClick={handleSearch}
             disabled={isListLoading}
           >
-            {isListLoading ? "조회 중..." : "조회"}
+            {isListLoading && <div className={styles.spinner} />}
+            <span>조회</span>
           </button>
         </div>
       </section>
 
       {/* ── 하단: Master Grid (Inline Edit) ──────────── */}
-      <section aria-label="마스터 그리드" className={styles.card}>
+      <section aria-label="마스터 그리드" className={`${styles.card} ${styles.gridCard}`}>
         <div className={styles.gridHeader}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span className={styles.gridCount}>목록 ({total})</span>
@@ -469,14 +508,40 @@ export default function PIPASSETS01() {
             )}
           </div>
           <div className={styles.toolbar}>
-            {selectedRows.length > 0 && (
+            {selectedRows.length > 0 && items.some(i => selectedRows.includes(i.assetId) && !i.deleted) && (
               <button
                 type="button"
                 className={styles.btnOutline}
+                style={{ minWidth: "110px", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
                 onClick={handleSelectDelete}
                 disabled={isDeleting}
               >
-                {isDeleting ? "삭제 중..." : "선택 삭제"}
+                {isDeleting ? (
+                  <>
+                    <div className={styles.spinner} style={{ borderTopColor: "#b00020" }} />
+                    삭제 중...
+                  </>
+                ) : (
+                  "선택 삭제"
+                )}
+              </button>
+            )}
+            {selectedRows.length > 0 && items.some(i => selectedRows.includes(i.assetId) && i.deleted) && (
+              <button
+                type="button"
+                className={styles.btnOutline}
+                style={{ minWidth: "110px", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                onClick={handleSelectRestore}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <div className={styles.spinner} style={{ borderTopColor: "#b00020" }} />
+                    복원 중...
+                  </>
+                ) : (
+                  "선택 복원"
+                )}
               </button>
             )}
             {dirtyCount > 0 && (
@@ -492,10 +557,18 @@ export default function PIPASSETS01() {
                 <button
                   type="button"
                   className={styles.btnPrimary}
+                  style={{ minWidth: "100px" }}
                   onClick={handleSaveAll}
                   disabled={isSaving}
                 >
-                  {isSaving ? "저장 중..." : "저장"}
+                  {isSaving ? (
+                    <>
+                      <div className={styles.spinner} />
+                      저장 중...
+                    </>
+                  ) : (
+                    "저장"
+                  )}
                 </button>
               </>
             )}
@@ -509,12 +582,16 @@ export default function PIPASSETS01() {
           </div>
         </div>
 
-        {noticeMessage ? (
-          <div className={styles.noticeSuccess}>{noticeMessage}</div>
-        ) : null}
-        {listError ? (
-          <div className={styles.noticeError}>{listError}</div>
-        ) : null}
+        {
+          noticeMessage ? (
+            <div className={styles.noticeSuccess}>{noticeMessage}</div>
+          ) : null
+        }
+        {
+          listError ? (
+            <div className={styles.noticeError}>{listError}</div>
+          ) : null
+        }
 
         <div style={{ overflowX: "auto" }}>
           <table className={styles.table}>
@@ -554,7 +631,7 @@ export default function PIPASSETS01() {
                   return (
                     <tr
                       key={item.assetId}
-                      className={`${styles.tableRow} ${isDirty ? styles.tableRowDirty : ""}`}
+                      className={`${styles.tableRow} ${isDirty ? styles.tableRowDirty : ""} ${item.deleted ? styles.tableRowDeleted : ""}`}
                     >
                       <td style={{ textAlign: "center" }}>
                         <input
@@ -570,7 +647,10 @@ export default function PIPASSETS01() {
                           }}
                         />
                       </td>
-                      <td>{item.assetId}</td>
+                      <td style={{ textDecoration: item.deleted ? 'line-through' : 'none', color: item.deleted ? '#888' : 'inherit' }}>
+                        {item.assetId}
+                        {item.deleted && <span style={{ marginLeft: 6, fontSize: '0.8em', color: '#ff4d4f' }}>(삭제됨)</span>}
+                      </td>
                       <td>
                         <input
                           type="text"
@@ -635,43 +715,53 @@ export default function PIPASSETS01() {
             </tbody>
           </table>
         </div>
-      </section>
+      </section >
 
       {/* ── 신규 등록 모달 ──────────────────────────── */}
-      {showCreateModal ? (
-        <div role="dialog" aria-modal="true" className={styles.modalOverlay}>
-          <div
-            className={styles.modalBox}
-            style={{ width: "500px", maxWidth: "90%" }}
-          >
-            <p className={styles.modalTitle}>자산 신규 등록</p>
-            {saveError ? (
-              <div className={styles.noticeError}>{saveError}</div>
-            ) : null}
+      {
+        showCreateModal ? (
+          <div role="dialog" aria-modal="true" className={styles.modalOverlay}>
+            <div
+              className={styles.modalBox}
+              style={{ width: "500px", maxWidth: "90%" }}
+            >
+              <p className={styles.modalTitle}>자산 신규 등록</p>
+              {saveError ? (
+                <div className={styles.noticeError}>{saveError}</div>
+              ) : null}
 
-            {renderCreateFormFields()}
+              {renderCreateFormFields()}
 
-            <div className={styles.modalActions} style={{ marginTop: 24 }}>
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                onClick={closeCreateModal}
-                disabled={isSaving}
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                className={styles.btnPrimary}
-                onClick={handleCreateSave}
-                disabled={isSaving}
-              >
-                {isSaving ? "저장 중..." : "저장"}
-              </button>
+              <div className={styles.modalActions} style={{ marginTop: 24 }}>
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={closeCreateModal}
+                  disabled={isSaving}
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  style={{ minWidth: "100px" }}
+                  onClick={handleCreateSave}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <>
+                      <div className={styles.spinner} />
+                      저장 중...
+                    </>
+                  ) : (
+                    "저장"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      ) : null}
-    </div>
+        ) : null
+      }
+    </div >
   );
 }

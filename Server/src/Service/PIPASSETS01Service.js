@@ -19,7 +19,7 @@ class PIPASSETS01Service {
     this.mapper = mapper;
   }
 
-  list(query) {
+  async list(query) {
     return this.mapper.list({
       assetType: toStringTrim(query.assetType),
       exposureRegion: toStringTrim(query.exposureRegion),
@@ -28,7 +28,7 @@ class PIPASSETS01Service {
     });
   }
 
-  getById(assetId) {
+  async getById(assetId) {
     return this.mapper.findById(assetId);
   }
 
@@ -79,25 +79,26 @@ class PIPASSETS01Service {
     };
   }
 
-  create(payload) {
+  async create(payload) {
     const { errors, payload: normalized } = this.validate(payload, "create");
     if (Object.keys(errors).length > 0) {
       return { errors, item: null };
     }
 
-    if (this.mapper.findById(normalized.assetId)) {
+    const existing = await this.mapper.findById(normalized.assetId);
+    if (existing) {
       return {
         errors: { assetId: "assetId already exists" },
         item: null,
       };
     }
 
-    const item = this.mapper.create(normalized);
+    const item = await this.mapper.create(normalized);
     return { errors: {}, item };
   }
 
-  update(assetId, payload) {
-    const current = this.mapper.findById(assetId);
+  async update(assetId, payload) {
+    const current = await this.mapper.findById(assetId);
     if (!current) {
       return { notFound: true, errors: {}, item: null };
     }
@@ -107,14 +108,20 @@ class PIPASSETS01Service {
       return { errors, item: null, notFound: false };
     }
 
-    const item = this.mapper.update(assetId, normalized);
+    const item = await this.mapper.update(assetId, normalized);
     return { errors: {}, item, notFound: false };
   }
 
-  softDelete(assetId) {
-    const current = this.mapper.findById(assetId);
+  async softDelete(assetId) {
+    const current = await this.mapper.findById(assetId);
     if (!current) return null;
     return this.mapper.softDelete(assetId);
+  }
+
+  async restore(assetId) {
+    const current = await this.mapper.findById(assetId);
+    if (!current) return null;
+    return this.mapper.restore(assetId);
   }
 }
 
