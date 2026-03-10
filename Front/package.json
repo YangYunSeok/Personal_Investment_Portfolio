@@ -21,8 +21,10 @@
   "homepage": "https://github.com/YangYunSeok/Personal_Investment_Portfolio#readme",
   "dependencies": {
     "@babel/parser": "^7.29.0",
+    "chart.js": "^4.5.1",
     "lucide-react": "^0.575.0",
     "react": "^19.2.4",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.0"
   },

@@ -2,7 +2,9 @@
  * API module for PIPACTLOGS01 (Activity Log)
  */
 
-const BASE_URL = "/api/pip/transactions";
+import { API_BASE } from "../config/api";
+
+const BASE_URL = `${API_BASE}/api/pip/transactions`;
 
 export async function fetchTransactions(query) {
   const params = new URLSearchParams(query).toString();

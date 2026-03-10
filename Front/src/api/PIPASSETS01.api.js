@@ -13,7 +13,9 @@
  * - 단일 원장 원칙 위반 금지
  * - SSOT 미정의 필드/흐름 임의 추가 금지
  */
-const ASSETS_BASE_PATH = "/api/pip/assets";
+import { API_BASE } from "../config/api";
+
+const ASSETS_BASE_PATH = `${API_BASE}/api/pip/assets`;
 
 function buildQueryString(params = {}) {
   const searchParams = new URLSearchParams();

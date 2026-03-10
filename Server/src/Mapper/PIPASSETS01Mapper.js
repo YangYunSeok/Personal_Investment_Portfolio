@@ -12,7 +12,7 @@ class PIPASSETS01Mapper {
         DEL_YN AS deleted,
         REG_DT AS createdAt,
         MOD_DT AS updatedAt
-      FROM pip_assets
+      FROM PIP_ASSETS
       WHERE 1=1
     `;
     const params = [];
@@ -53,7 +53,7 @@ class PIPASSETS01Mapper {
         DEL_YN AS deleted,
         REG_DT AS createdAt,
         MOD_DT AS updatedAt
-      FROM pip_assets
+      FROM PIP_ASSETS
       WHERE ASSET_ID = ?
     `;
     const [rows] = await pool.query(query, [assetId]);
@@ -64,7 +64,7 @@ class PIPASSETS01Mapper {
 
   async create(payload) {
     const query = `
-      INSERT INTO pip_assets 
+      INSERT INTO PIP_ASSETS 
         (ASSET_ID, ASSET_NM, ASSET_TP_CD, EXPOSURE_REGION, TRADE_CCY_CD, DEL_YN)
       VALUES (?, ?, ?, ?, ?, 'N')
     `;
@@ -80,7 +80,7 @@ class PIPASSETS01Mapper {
 
   async update(assetId, payload) {
     const query = `
-      UPDATE pip_assets
+      UPDATE PIP_ASSETS
       SET 
         ASSET_NM = ?,
         ASSET_TP_CD = ?,
@@ -101,7 +101,7 @@ class PIPASSETS01Mapper {
 
   async softDelete(assetId) {
     const query = `
-      UPDATE pip_assets
+      UPDATE PIP_ASSETS
       SET DEL_YN = 'Y', MOD_DT = CURRENT_TIMESTAMP(3)
       WHERE ASSET_ID = ?
     `;
@@ -111,7 +111,7 @@ class PIPASSETS01Mapper {
 
   async restore(assetId) {
     const query = `
-      UPDATE pip_assets
+      UPDATE PIP_ASSETS
       SET DEL_YN = 'N', MOD_DT = CURRENT_TIMESTAMP(3)
       WHERE ASSET_ID = ?
     `;

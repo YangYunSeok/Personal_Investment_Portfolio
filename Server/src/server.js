@@ -1,3 +1,5 @@
+const cors = require("cors");
+
 const express = require("express");
 const PIPASSETS01Mapper = require("./Mapper/PIPASSETS01Mapper");
 const PIPASSETS01Service = require("./Service/PIPASSETS01Service");
@@ -10,6 +12,16 @@ const PIPACTLOGS01Service = require("./Service/PIPACTLOGS01Service");
 const registerPIPACTLOGS01Controller = require("./Controller/PIPACTLOGS01Controller");
 
 const app = express();
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://158.179.163.106"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 
 // Assets
@@ -25,12 +37,30 @@ registerPIPACCOUNTS01Controller(app, accountService);
 const activityLogService = new PIPACTLOGS01Service();
 registerPIPACTLOGS01Controller(app, activityLogService);
 
+// FX (Exchange)
+const PIPFXS01Service = require("./Service/PIPFXS01Service");
+const registerPIPFXS01Controller = require("./Controller/PIPFXS01Controller");
+const fxService = new PIPFXS01Service();
+registerPIPFXS01Controller(app, fxService);
+
+// Positions (PIPPOSHLDS01)
+const PIPPOSHLDS01Service = require("./Service/PIPPOSHLDS01Service");
+const registerPIPPOSHLDS01Controller = require("./Controller/PIPPOSHLDS01Controller");
+const positionService = new PIPPOSHLDS01Service();
+registerPIPPOSHLDS01Controller(app, positionService);
+
+// Dashboard (PIPDASHS01)
+const PIPDASHS01Service = require("./Service/PIPDASHS01Service");
+const registerPIPDASHS01Controller = require("./Controller/PIPDASHS01Controller");
+const dashboardService = new PIPDASHS01Service();
+registerPIPDASHS01Controller(app, dashboardService);
+
 app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   // eslint-disable-next-line no-console
-  console.log(`PIP server listening on http://localhost:${port}`);
+  console.log(`PIP server listening on port ${port}`);
 });

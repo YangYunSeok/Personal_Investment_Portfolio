@@ -2,7 +2,9 @@
  * API module for Account management
  */
 
-const BASE_URL = "/api/pip/accounts";
+import { API_BASE } from "../config/api";
+
+const BASE_URL = `${API_BASE}/api/pip/accounts`;
 
 export async function fetchAccountsList(query) {
   const params = new URLSearchParams(query).toString();

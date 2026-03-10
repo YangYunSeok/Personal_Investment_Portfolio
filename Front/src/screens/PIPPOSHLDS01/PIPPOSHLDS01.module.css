@@ -1,0 +1,527 @@
+/* ─── 전체 페이지 래퍼 ─────────────────────────────── */
+.page {
+  box-sizing: border-box;
+  color: #111;
+  font-family: 'Inter', 'Pretendard', sans-serif;
+  scrollbar-gutter: stable;
+}
+
+/* ─── 타이틀 ─────────────────────────────────────── */
+.pageTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 16px;
+}
+
+/* ─── 탭 레이아웃 ───────────────────────────────────── */
+.tabsContainer {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #dde3ec;
+}
+
+.tab {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #2f6fed;
+  background: #f0f7ff;
+}
+
+.activeTab {
+  color: #2f6fed;
+  border-bottom-color: #2f6fed;
+}
+
+/* ─── 공통 카드 ──────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.gridCard {
+  min-height: 500px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 16px;
+}
+
+/* ─── 필터 카드 ──────────────────────────────────── */
+.filterBar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.filterItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.filterLabel {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.filterCheckboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  font-size: 14px;
+  color: #444;
+  cursor: pointer;
+}
+
+.filterActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.filterCheckboxWrapper input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #2f6fed;
+}
+
+/* ─── 폼 공통 요소 (select / input) ─────────────── */
+.input,
+.select {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #dde3ec;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.select:focus {
+  border-color: #2f6fed;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+}
+
+.input:disabled {
+  background: #f2f4f8;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* ─── Master Grid ────────────────────────────────── */
+.gridHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.gridCount {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dirtyBadge {
+  background: #fde047;
+  color: #a16207;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead tr th {
+  background: #f7f9fc;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  padding: 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  white-space: nowrap;
+}
+
+.table tbody tr td {
+  border-bottom: 1px solid #eee;
+  padding: 8px;
+  font-size: 14px;
+  color: #111;
+  vertical-align: middle;
+}
+
+.tableRow {
+  transition: background 0.15s, opacity 0.3s;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tableRow:hover {
+  background: #f8fafc;
+}
+
+.tableRowDeleted {
+  background-color: #f9fafb !important;
+  opacity: 0.6;
+}
+
+.tableRowDeleted td {
+  color: #94a3b8 !important;
+  text-decoration: line-through;
+}
+
+.tableRowDeleted .gridInput,
+.tableRowDeleted .gridSelect {
+  color: #94a3b8 !important;
+  text-decoration: line-through;
+  pointer-events: none;
+  /* Prevent editing deleted items */
+}
+
+.tableEmpty {
+  padding: 24px;
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ─── Inline Grid Editor ────────────────────────── */
+.gridInput,
+.gridSelect {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #111;
+  background: transparent;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.15s;
+}
+
+.gridInput:hover,
+.gridSelect:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.gridInput:focus,
+.gridSelect:focus {
+  background: #fff;
+  border-color: #2f6fed;
+}
+
+.tableRowDirty td {
+  background: #fefce8 !important;
+  /* Light yellow background */
+}
+
+.tableRowDirty .gridInput,
+.tableRowDirty .gridSelect {
+  background: #fff;
+  border-color: #fde047;
+}
+
+.rowError {
+  font-size: 11px;
+  color: #dc2626;
+  margin-top: 4px;
+  display: block;
+  line-height: 1.2;
+}
+
+/* ─── 등록 폼 (모달) ────────────────────────────── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formFieldLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+}
+
+.fieldError {
+  font-size: 12px;
+  color: #b00020;
+  margin-top: 2px;
+}
+
+/* ─── 버튼 ───────────────────────────────────────── */
+.btnPrimary {
+  height: 36px;
+  padding: 0 20px;
+  background: #2f6fed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.btnSearch {
+  width: 120px;
+  /* Fixed width to prevent any layout shift in filter bar */
+}
+
+.btnSearch .spinner {
+  position: absolute;
+  left: 18px;
+  /* Place spinner on the left without pushing text */
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: #2559cc;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnOutline {
+  height: 36px;
+  padding: 0 20px;
+  background: transparent;
+  color: #b00020;
+  border: 1.5px solid #b00020;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.btnOutline:hover:not(:disabled) {
+  background: #fff0f0;
+}
+
+.btnOutline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  height: 36px;
+  padding: 0 16px;
+  background: #f0f4ff;
+  color: #2f6fed;
+  border: 1.5px solid #c2d4fb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background: #dce9ff;
+}
+
+.btnSecondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── 알림 메시지 ─────────────────────────────────── */
+.noticeSuccess {
+  font-size: 13px;
+  color: #136f2d;
+  background: #eefbf3;
+  border: 1px solid #a8e6bb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.noticeError {
+  font-size: 13px;
+  color: #b00020;
+  background: #fff0f2;
+  border: 1px solid #f5b8c0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* ─── 모달 ──────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalBox {
+  width: 360px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 16px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ─── 반응형 ─────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .page {
+    padding: 20px 16px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .filterBar {
+    flex-wrap: wrap;
+  }
+
+  .filterItem {
+    min-width: 120px;
+  }
+}
+
+/* ─── Scroll Top Button ───────────────────────────── */
+.scrollTopBtn {
+  position: fixed;
+  right: 40px;
+  bottom: 40px;
+  width: 50px;
+  height: 50px;
+  background: #ffffff;
+  color: #2f6fed;
+  border: 1px solid #dde3ec;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 900;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+  visibility: visible;
+}
+
+.scrollTopBtn:hover {
+  background: #2f6fed;
+  color: #ffffff;
+  border-color: #2f6fed;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(47, 111, 237, 0.3);
+}
+
+@media (max-width: 768px) {
+  .scrollTopBtn {
+    right: 20px;
+    bottom: 20px;
+    width: 44px;
+    height: 44px;
+  }
+}

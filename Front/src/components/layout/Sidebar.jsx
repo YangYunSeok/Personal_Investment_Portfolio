@@ -1,12 +1,17 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Database, ClipboardList, TrendingUp, Settings } from 'lucide-react';
+import { LayoutDashboard, Database, ClipboardList, TrendingUp, Settings, PieChart } from 'lucide-react';
 import styles from './Layout.module.css';
 
 const Sidebar = () => {
     const location = useLocation();
 
     const menuItems = [
+        {
+            title: '대시보드',
+            path: '/dashboard',
+            icon: <PieChart size={20} />,
+        },
         {
             title: '메타 마스터 관리',
             path: '/meta-master',
@@ -15,6 +20,16 @@ const Sidebar = () => {
         {
             title: '투자 원장',
             path: '/activity-log',
+            icon: <ClipboardList size={20} />,
+        },
+        {
+            title: '보유 자산',
+            path: '/positions',
+            icon: <LayoutDashboard size={20} />,
+        },
+        {
+            title: '환전(FX)',
+            path: '/fx',
             icon: <ClipboardList size={20} />,
         },
     ];

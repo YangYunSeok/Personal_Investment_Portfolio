@@ -14,7 +14,7 @@ class PIPACCOUNTS01Service {
         DEL_YN AS delYn,
         REG_DT AS regDt,
         MOD_DT AS modDt
-      FROM pip_accounts
+      FROM PIP_ACCOUNTS
       WHERE 1=1
     `;
     const params = [];
@@ -39,7 +39,7 @@ class PIPACCOUNTS01Service {
       SELECT 
         ACCOUNT_ID AS id, ACCOUNT_NM AS name, BROKER_NM AS broker,
         BASE_CCY_CD AS currency, DEL_YN AS delYn
-      FROM pip_accounts
+      FROM PIP_ACCOUNTS
       WHERE ACCOUNT_ID = ?
     `;
     const [rows] = await pool.query(sql, [id]);
@@ -49,7 +49,7 @@ class PIPACCOUNTS01Service {
 
   async create(data) {
     const sql = `
-      INSERT INTO pip_accounts (
+      INSERT INTO PIP_ACCOUNTS (
         ACCOUNT_ID, ACCOUNT_NM, BROKER_NM, BASE_CCY_CD, DEL_YN
       ) VALUES (?, ?, ?, ?, 'N')
     `;
@@ -63,7 +63,7 @@ class PIPACCOUNTS01Service {
 
   async update(id, data) {
     const sql = `
-      UPDATE pip_accounts SET
+      UPDATE PIP_ACCOUNTS SET
         ACCOUNT_NM = ?, BROKER_NM = ?, BASE_CCY_CD = ?,
         MOD_DT = CURRENT_TIMESTAMP(3)
       WHERE ACCOUNT_ID = ?
@@ -77,13 +77,13 @@ class PIPACCOUNTS01Service {
   }
 
   async softDelete(id) {
-    const sql = `UPDATE pip_accounts SET DEL_YN = 'Y', MOD_DT = CURRENT_TIMESTAMP(3) WHERE ACCOUNT_ID = ?`;
+    const sql = `UPDATE PIP_ACCOUNTS SET DEL_YN = 'Y', MOD_DT = CURRENT_TIMESTAMP(3) WHERE ACCOUNT_ID = ?`;
     await pool.query(sql, [id]);
     return true;
   }
 
   async restore(id) {
-    const sql = `UPDATE pip_accounts SET DEL_YN = 'N', MOD_DT = CURRENT_TIMESTAMP(3) WHERE ACCOUNT_ID = ?`;
+    const sql = `UPDATE PIP_ACCOUNTS SET DEL_YN = 'N', MOD_DT = CURRENT_TIMESTAMP(3) WHERE ACCOUNT_ID = ?`;
     await pool.query(sql, [id]);
     return true;
   }

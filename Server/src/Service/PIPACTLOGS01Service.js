@@ -26,7 +26,7 @@ class PIPACTLOGS01Service {
         DEL_YN AS delYn,
         REG_DT AS regDt,
         MOD_DT AS modDt
-      FROM pip_transactions
+      FROM PIP_TRANSACTIONS
       WHERE 1=1
     `;
     const params = [];
@@ -87,12 +87,12 @@ class PIPACTLOGS01Service {
         QTY AS quantity, UNIT_PRC AS unitPrice, AMT AS tradeAmount,
         TX_CCY_CD AS tradeCurrency, FX_RATE AS fxRate, FROM_CCY_CD AS fromCurrency,
         TO_CCY_CD AS toCurrency, MEMO AS memo, DEL_YN AS delYn
-      FROM pip_transactions
+      FROM PIP_TRANSACTIONS
       WHERE TX_ID = ?
     `;
     const [rows] = await pool.query(sql, [id]);
     if (rows.length === 0) return null;
-    
+
     const row = rows[0];
     return {
       ...row,
@@ -109,7 +109,7 @@ class PIPACTLOGS01Service {
     });
 
     const sql = `
-      INSERT INTO pip_transactions (
+      INSERT INTO PIP_TRANSACTIONS (
         TX_DT, ACCOUNT_ID, ASSET_ID, TX_TP_CD, ASSET_TP_CD, EXPOSURE_REGION,
         QTY, UNIT_PRC, AMT, TX_CCY_CD, FX_RATE, FROM_CCY_CD, TO_CCY_CD, MEMO, DEL_YN
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'N')
@@ -133,7 +133,7 @@ class PIPACTLOGS01Service {
     });
 
     const sql = `
-      UPDATE pip_transactions SET
+      UPDATE PIP_TRANSACTIONS SET
         TX_DT = ?, ACCOUNT_ID = ?, ASSET_ID = ?, TX_TP_CD = ?, ASSET_TP_CD = ?,
         EXPOSURE_REGION = ?, QTY = ?, UNIT_PRC = ?, AMT = ?, TX_CCY_CD = ?,
         FX_RATE = ?, FROM_CCY_CD = ?, TO_CCY_CD = ?, MEMO = ?,
@@ -153,14 +153,14 @@ class PIPACTLOGS01Service {
   }
 
   async softDelete(id) {
-    const sql = `UPDATE pip_transactions SET DEL_YN = 'Y', MOD_DT = CURRENT_TIMESTAMP(3) WHERE TX_ID = ?`;
+    const sql = `UPDATE PIP_TRANSACTIONS SET DEL_YN = 'Y', MOD_DT = CURRENT_TIMESTAMP(3) WHERE TX_ID = ?`;
     await pool.query(sql, [id]);
     return true;
   }
 
   async getMetadata() {
-    const [accounts] = await pool.query("SELECT ACCOUNT_ID AS id, ACCOUNT_NM AS name FROM pip_accounts WHERE DEL_YN = 'N'");
-    const [assets] = await pool.query("SELECT ASSET_ID AS id, ASSET_NM AS name FROM pip_assets WHERE DEL_YN = 'N'");
+    const [accounts] = await pool.query("SELECT ACCOUNT_ID AS id, ACCOUNT_NM AS name FROM PIP_ACCOUNTS WHERE DEL_YN = 'N'");
+    const [assets] = await pool.query("SELECT ASSET_ID AS id, ASSET_NM AS name FROM PIP_ASSETS WHERE DEL_YN = 'N'");
     return { accounts, assets };
   }
 }
