@@ -2,13 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
     TRANSACTION_TYPE_OPTIONS,
     TRANSACTION_TYPE_LABEL,
-    ASSET_TYPE_OPTIONS,
-    ASSET_TYPE_LABEL,
-    EXPOSURE_REGION_OPTIONS,
-    EXPOSURE_REGION_LABEL,
-    CURRENCY_OPTIONS,
-    CURRENCY_LABEL
 } from "../PIPACTLOGS01.constants";
+import useCommonCodes from "../../../hooks/useCommonCodes.js";
 import styles from "../PIPACTLOGS01.module.css";
 
 const initialForm = {
@@ -16,12 +11,12 @@ const initialForm = {
     accountId: "",
     assetId: "",
     transactionType: "BUY",
-    assetType: "Stock",
-    exposureRegion: "US",
+    assetType: "",
+    exposureRegion: "",
     quantity: "",
     unitPrice: "",
     tradeAmount: "",
-    tradeCurrency: "USD",
+    tradeCurrency: "",
     fxRate: "",
     fromCurrency: "",
     toCurrency: "",
@@ -36,6 +31,11 @@ export default function TransactionModal({
     accounts,
     assets
 }) {
+    const { codes } = useCommonCodes(["ASSET_TYPE", "EXPOSURE_REGION", "TX_CCY_CD"]);
+    const assetTypeOptions = codes.ASSET_TYPE || [];
+    const exposureRegionOptions = codes.EXPOSURE_REGION || [];
+    const currencyOptions = codes.TX_CCY_CD || [];
+
     const [form, setForm] = useState(initialForm);
     const [errors, setErrors] = useState({});
 
@@ -152,8 +152,9 @@ export default function TransactionModal({
                                     value={form.assetType}
                                     onChange={(e) => handleChange("assetType", e.target.value)}
                                 >
-                                    {ASSET_TYPE_OPTIONS.map(opt => (
-                                        <option key={opt} value={opt}>{ASSET_TYPE_LABEL[opt]}</option>
+                                    <option value="">선택</option>
+                                    {assetTypeOptions.map(opt => (
+                                        <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>
                                     ))}
                                 </select>
                             </div>
@@ -165,8 +166,9 @@ export default function TransactionModal({
                                     value={form.exposureRegion}
                                     onChange={(e) => handleChange("exposureRegion", e.target.value)}
                                 >
-                                    {EXPOSURE_REGION_OPTIONS.map(opt => (
-                                        <option key={opt} value={opt}>{EXPOSURE_REGION_LABEL[opt]}</option>
+                                    <option value="">선택</option>
+                                    {exposureRegionOptions.map(opt => (
+                                        <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>
                                     ))}
                                 </select>
                             </div>
@@ -228,7 +230,7 @@ export default function TransactionModal({
                                 <span className={styles.filterLabel}>From 통화 *</span>
                                 <select className={styles.select} value={form.fromCurrency} onChange={(e) => handleChange("fromCurrency", e.target.value)}>
                                     <option value="">선택</option>
-                                    {CURRENCY_OPTIONS.map(opt => <option key={opt} value={opt}>{CURRENCY_LABEL[opt]}</option>)}
+                                    {currencyOptions.map(opt => <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>)}
                                 </select>
                                 {errors.fromCurrency && <span className={styles.errorText}>{errors.fromCurrency}</span>}
                             </div>
@@ -236,7 +238,7 @@ export default function TransactionModal({
                                 <span className={styles.filterLabel}>To 통화 *</span>
                                 <select className={styles.select} value={form.toCurrency} onChange={(e) => handleChange("toCurrency", e.target.value)}>
                                     <option value="">선택</option>
-                                    {CURRENCY_OPTIONS.map(opt => <option key={opt} value={opt}>{CURRENCY_LABEL[opt]}</option>)}
+                                    {currencyOptions.map(opt => <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>)}
                                 </select>
                                 {errors.toCurrency && <span className={styles.errorText}>{errors.toCurrency}</span>}
                             </div>
@@ -255,8 +257,9 @@ export default function TransactionModal({
                                 value={form.tradeCurrency}
                                 onChange={(e) => handleChange("tradeCurrency", e.target.value)}
                             >
-                                {CURRENCY_OPTIONS.map(opt => (
-                                    <option key={opt} value={opt}>{CURRENCY_LABEL[opt]}</option>
+                                <option value="">선택</option>
+                                {currencyOptions.map(opt => (
+                                    <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>
                                 ))}
                             </select>
                         </div>

@@ -7,17 +7,12 @@ import {
   restoreAsset,
 } from "../api/PIPASSETS01.api.js";
 import {
-  ASSET_TYPE_LABEL,
-  ASSET_TYPE_OPTIONS,
-  CURRENCY_LABEL,
-  CURRENCY_OPTIONS,
-  EXPOSURE_REGION_LABEL,
-  EXPOSURE_REGION_OPTIONS,
   buildAssetUpsertPayload,
   buildAssetsListQuery,
   createEmptyAssetForm,
   mapAssetListResponse,
 } from "../api/PIPASSETS01.mapper.js";
+import useCommonCodes, { getCodeName } from "../hooks/useCommonCodes.js";
 import styles from "./PIPASSETS01.module.css";
 
 const initialFilterForm = {
@@ -28,6 +23,14 @@ const initialFilterForm = {
 };
 
 export default function PIPASSETS01() {
+  const { codes, codeMap, loading: codesLoading, error: codesError } = useCommonCodes(["ASSET_TYPE", "EXPOSURE_REGION", "TX_CCY_CD"]);
+  const assetTypeOptions = codes.ASSET_TYPE || [];
+  const exposureRegionOptions = codes.EXPOSURE_REGION || [];
+  const currencyOptions = codes.TX_CCY_CD || [];
+  const assetTypeMap = codeMap.ASSET_TYPE || {};
+  const exposureRegionMap = codeMap.EXPOSURE_REGION || {};
+  const currencyMap = codeMap.TX_CCY_CD || {};
+
   const [filterForm, setFilterForm] = useState(initialFilterForm);
   const [lastSearchQuery, setLastSearchQuery] = useState(null);
   const [items, setItems] = useState([]);
@@ -382,9 +385,9 @@ export default function PIPASSETS01() {
           onChange={updateForm("assetType")}
         >
           <option value="">선택</option>
-          {ASSET_TYPE_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {ASSET_TYPE_LABEL[option] ?? option}
+          {assetTypeOptions.map((item) => (
+            <option key={item.codeId} value={item.codeId}>
+              {item.codeName}
             </option>
           ))}
         </select>
@@ -401,9 +404,9 @@ export default function PIPASSETS01() {
           onChange={updateForm("exposureRegion")}
         >
           <option value="">선택</option>
-          {EXPOSURE_REGION_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {EXPOSURE_REGION_LABEL[option] ?? option}
+          {exposureRegionOptions.map((item) => (
+            <option key={item.codeId} value={item.codeId}>
+              {item.codeName}
             </option>
           ))}
         </select>
@@ -420,9 +423,9 @@ export default function PIPASSETS01() {
           onChange={updateForm("currency")}
         >
           <option value="">선택</option>
-          {CURRENCY_OPTIONS.map((c) => (
-            <option key={c} value={c}>
-              {CURRENCY_LABEL[c] ?? c}
+          {currencyOptions.map((item) => (
+            <option key={item.codeId} value={item.codeId}>
+              {item.codeName}
             </option>
           ))}
         </select>
@@ -449,9 +452,9 @@ export default function PIPASSETS01() {
               onChange={updateFilter("assetType")}
             >
               <option value="">전체</option>
-              {ASSET_TYPE_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {ASSET_TYPE_LABEL[option] ?? option}
+              {assetTypeOptions.map((item) => (
+                <option key={item.codeId} value={item.codeId}>
+                  {item.codeName}
                 </option>
               ))}
             </select>
@@ -465,9 +468,9 @@ export default function PIPASSETS01() {
               onChange={updateFilter("exposureRegion")}
             >
               <option value="">전체</option>
-              {EXPOSURE_REGION_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {EXPOSURE_REGION_LABEL[option] ?? option}
+              {exposureRegionOptions.map((item) => (
+                <option key={item.codeId} value={item.codeId}>
+                  {item.codeName}
                 </option>
               ))}
             </select>
@@ -694,9 +697,9 @@ export default function PIPASSETS01() {
                             updateDraft(item.assetId, "assetType", e.target.value)
                           }
                         >
-                          {ASSET_TYPE_OPTIONS.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {ASSET_TYPE_LABEL[opt]}
+                          {assetTypeOptions.map((item) => (
+                            <option key={item.codeId} value={item.codeId}>
+                              {item.codeName}
                             </option>
                           ))}
                         </select>
@@ -709,9 +712,9 @@ export default function PIPASSETS01() {
                             updateDraft(item.assetId, "exposureRegion", e.target.value)
                           }
                         >
-                          {EXPOSURE_REGION_OPTIONS.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {EXPOSURE_REGION_LABEL[opt]}
+                          {exposureRegionOptions.map((item) => (
+                            <option key={item.codeId} value={item.codeId}>
+                              {item.codeName}
                             </option>
                           ))}
                         </select>
@@ -724,9 +727,9 @@ export default function PIPASSETS01() {
                             updateDraft(item.assetId, "currency", e.target.value)
                           }
                         >
-                          {CURRENCY_OPTIONS.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {CURRENCY_LABEL[opt]}
+                          {currencyOptions.map((item) => (
+                            <option key={item.codeId} value={item.codeId}>
+                              {item.codeName}
                             </option>
                           ))}
                         </select>

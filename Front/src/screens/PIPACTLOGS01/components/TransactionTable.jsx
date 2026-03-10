@@ -1,5 +1,6 @@
 import React from "react";
-import { TRANSACTION_TYPE_LABEL, CURRENCY_LABEL } from "../PIPACTLOGS01.constants";
+import { TRANSACTION_TYPE_LABEL } from "../PIPACTLOGS01.constants";
+import useCommonCodes, { getCodeName } from "../../../hooks/useCommonCodes.js";
 import styles from "../PIPACTLOGS01.module.css";
 
 export default function TransactionTable({
@@ -9,6 +10,9 @@ export default function TransactionTable({
     accounts,
     assets
 }) {
+    const { codeMap } = useCommonCodes(["TX_CCY_CD"]);
+    const currencyMap = codeMap.TX_CCY_CD || {};
+
     const getAccountName = (id) => accounts.find(a => a.id === id)?.name || id;
     const getAssetName = (id) => assets.find(a => a.id === id)?.name || id;
 
@@ -66,7 +70,7 @@ export default function TransactionTable({
                                             </div>
                                         )}
                                     </td>
-                                    <td>{CURRENCY_LABEL[item.tradeCurrency] || item.tradeCurrency}</td>
+                                    <td>{getCodeName(currencyMap, item.tradeCurrency)}</td>
                                     <td>{item.fxRate ? formatNumber(item.fxRate) : "-"}</td>
                                     <td>{item.memo}</td>
                                     <td>

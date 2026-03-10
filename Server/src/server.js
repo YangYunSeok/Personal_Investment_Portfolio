@@ -55,6 +55,12 @@ const registerPIPDASHS01Controller = require("./Controller/PIPDASHS01Controller"
 const dashboardService = new PIPDASHS01Service();
 registerPIPDASHS01Controller(app, dashboardService);
 
+// Common Codes (PIP_CM_CD)
+const PIPCMCD01Service = require("./Service/PIPCMCD01Service");
+const registerPIPCMCD01Controller = require("./Controller/PIPCMCD01Controller");
+const commonCodeService = new PIPCMCD01Service();
+registerPIPCMCD01Controller(app, commonCodeService);
+
 app.get("/health", (req, res) => {
   res.json({ ok: true });
 });

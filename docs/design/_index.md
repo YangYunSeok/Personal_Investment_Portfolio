@@ -124,3 +124,29 @@ PIPMETAMST01 → PIPACTLOGS01 / PIPFXS01 → PIPPOSHLDS01 → PIPDASHS01
 
 - SSOT 수정 → 계약 고정 → 구현 순서 고수
 - 코드로 규칙을 덮지 않는다
+
+---
+
+## 9. 공통코드 관리 (PIP_CM_CD)
+
+### 9.1 공통코드 테이블
+프로젝트 내 자산유형, 노출지역, 통화 등 기준정보는 **PIP_CM_CD** 공통코드 테이블에서 관리한다.
+소스 코드에 하드코딩하지 않으며, DB 데이터 추가만으로 화면에 반영되어야 한다.
+
+### 9.2 관리 대상 코드그룹
+
+| CD_GRP_ID | 설명 | 예시 |
+|---|---|---|
+| ASSET_TYPE | 자산유형 | STOCK, ETF, BOND, CRYPTO, COMMODITY, FX_CASH, KRW_CASH, DIVIDEND_ETF |
+| EXPOSURE_REGION | 노출지역 | KR, US |
+| TX_CCY_CD | 통화 | KRW, USD |
+
+### 9.3 조회 API
+- **GET /api/pip/common-codes?grpId={그룹ID}** — 단일/다건 그룹 조회
+- 조건: `USE_YN = 'Y'`, `DEL_YN = 'N'`
+- 정렬: `SORT_ORD ASC, CD_ID ASC`
+
+### 9.4 프론트엔드 사용 규칙
+- 화면에서는 `useCommonCodes()` Hook을 통해 공통코드를 조회/사용한다.
+- 저장 시에는 `CD_ID`를 저장하고, 화면 표시 시에는 `CD_NM`을 보여준다.
+- 코드명이 없는 경우 `CD_ID` 자체가 fallback으로 표시된다.

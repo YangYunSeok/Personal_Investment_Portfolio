@@ -12,48 +12,12 @@
  * - 계산값 저장 금지
  * - 단일 원장 원칙 위반 금지
  * - SSOT 미정의 필드/흐름 임의 추가 금지
+ *
+ * [공통코드 전환 완료]
+ * - ASSET_TYPE_OPTIONS / ASSET_TYPE_LABEL 등의 하드코딩 상수는 더 이상 사용되지 않음
+ * - 공통코드 테이블(PIP_CM_CD) 조회 기반으로 전환됨
+ * - 화면에서는 useCommonCodes() Hook을 통해 코드 목록/맵을 사용
  */
-export const ASSET_TYPE_OPTIONS = [
-  "Stock",
-  "ETF",
-  "Bond",
-  "Crypto",
-  "Commodity",
-  "FX Cash",
-  "KRW Cash",
-];
-
-export const ASSET_TYPE_LABEL = {
-  Stock: "주식",
-  ETF: "ETF",
-  Bond: "채권",
-  Crypto: "가상자산",
-  Commodity: "원자재",
-  "FX Cash": "외화 현금",
-  "KRW Cash": "원화 현금",
-};
-
-export const EXPOSURE_REGION_OPTIONS = ["KR", "US", "JP", "CH", "GLOBAL"];
-
-export const EXPOSURE_REGION_LABEL = {
-  KR: "국내",
-  US: "미국",
-  JP: "일본",
-  CH: "중국",
-  GLOBAL: "글로벌",
-};
-
-export const CURRENCY_OPTIONS = ["KRW", "USD", "JPY", "CNY", "EUR", "GBP", "HKD"];
-
-export const CURRENCY_LABEL = {
-  KRW: "KRW(원)",
-  USD: "USD(달러)",
-  JPY: "JPY(엔)",
-  CNY: "CNY(위안)",
-  EUR: "EUR(유로)",
-  GBP: "GBP(파운드)",
-  HKD: "HKD(홍콩달러)",
-};
 
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 
@@ -159,14 +123,10 @@ export function validateAssetForm(form, mode) {
 
   if (!assetType) {
     errors.assetType = "자산 유형(assetType)은 필수입니다.";
-  } else if (!ASSET_TYPE_OPTIONS.includes(assetType)) {
-    errors.assetType = "허용되지 않은 자산 유형입니다.";
   }
 
   if (!exposureRegion) {
     errors.exposureRegion = "노출 지역(exposureRegion)은 필수입니다.";
-  } else if (!EXPOSURE_REGION_OPTIONS.includes(exposureRegion)) {
-    errors.exposureRegion = "허용되지 않은 노출 지역입니다.";
   }
 
   if (!currency) {

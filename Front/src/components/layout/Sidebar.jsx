@@ -63,10 +63,13 @@ const Sidebar = () => {
             </nav>
 
             <div className={styles.sidebarFooter}>
-                <div className={styles.settingsLink}>
+                <Link
+                    to="/settings"
+                    className={`${styles.settingsLink} ${location.pathname === '/settings' ? styles.navLinkActive : ''}`}
+                >
                     <Settings size={20} />
                     <span>Settings</span>
-                </div>
+                </Link>
             </div>
         </aside>
     );

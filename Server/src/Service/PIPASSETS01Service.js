@@ -1,17 +1,34 @@
-const ASSET_TYPES = [
-  "Stock",
-  "ETF",
-  "Bond",
-  "Crypto",
-  "Commodity",
-  "FX Cash",
-  "KRW Cash",
-];
-const EXPOSURE_REGIONS = ["KR", "US", "JP", "CH", "GLOBAL"];
+const pool = require("../db");
+
 const CURRENCY_PATTERN = /^[A-Z]{3}$/;
 
 function toStringTrim(value) {
   return (value ?? "").toString().trim();
+}
+
+// 공통코드 조회 캐시 (프로세스 생애주기 내)
+let assetTypesCache = null;
+let exposureRegionsCache = null;
+
+async function getValidAssetTypes() {
+  if (assetTypesCache) return assetTypesCache;
+  const [rows] = await pool.query(
+    "SELECT CD_ID FROM PIP_CM_CD WHERE CD_GRP_ID = 'ASSET_TYPE' AND USE_YN = 'Y' AND DEL_YN = 'N'"
+  );
+  assetTypesCache = rows.map(r => r.CD_ID);
+  // 5분 후 캐시 만료
+  setTimeout(() => { assetTypesCache = null; }, 5 * 60 * 1000);
+  return assetTypesCache;
+}
+
+async function getValidExposureRegions() {
+  if (exposureRegionsCache) return exposureRegionsCache;
+  const [rows] = await pool.query(
+    "SELECT CD_ID FROM PIP_CM_CD WHERE CD_GRP_ID = 'EXPOSURE_REGION' AND USE_YN = 'Y' AND DEL_YN = 'N'"
+  );
+  exposureRegionsCache = rows.map(r => r.CD_ID);
+  setTimeout(() => { exposureRegionsCache = null; }, 5 * 60 * 1000);
+  return exposureRegionsCache;
 }
 
 class PIPASSETS01Service {
@@ -32,7 +49,7 @@ class PIPASSETS01Service {
     return this.mapper.findById(assetId);
   }
 
-  validate(payload, mode) {
+  async validate(payload, mode) {
     const errors = {};
 
     const assetId = toStringTrim(payload.assetId);
@@ -51,14 +68,20 @@ class PIPASSETS01Service {
 
     if (!assetType) {
       errors.assetType = "assetType is required";
-    } else if (!ASSET_TYPES.includes(assetType)) {
-      errors.assetType = "assetType is invalid";
+    } else {
+      const validTypes = await getValidAssetTypes();
+      if (!validTypes.includes(assetType)) {
+        errors.assetType = "assetType is invalid";
+      }
     }
 
     if (!exposureRegion) {
       errors.exposureRegion = "exposureRegion is required";
-    } else if (!EXPOSURE_REGIONS.includes(exposureRegion)) {
-      errors.exposureRegion = "exposureRegion is invalid";
+    } else {
+      const validRegions = await getValidExposureRegions();
+      if (!validRegions.includes(exposureRegion)) {
+        errors.exposureRegion = "exposureRegion is invalid";
+      }
     }
 
     if (!currency) {
@@ -80,7 +103,7 @@ class PIPASSETS01Service {
   }
 
   async create(payload) {
-    const { errors, payload: normalized } = this.validate(payload, "create");
+    const { errors, payload: normalized } = await this.validate(payload, "create");
     if (Object.keys(errors).length > 0) {
       return { errors, item: null };
     }
@@ -103,7 +126,7 @@ class PIPASSETS01Service {
       return { notFound: true, errors: {}, item: null };
     }
 
-    const { errors, payload: normalized } = this.validate(payload, "update");
+    const { errors, payload: normalized } = await this.validate(payload, "update");
     if (Object.keys(errors).length > 0) {
       return { errors, item: null, notFound: false };
     }

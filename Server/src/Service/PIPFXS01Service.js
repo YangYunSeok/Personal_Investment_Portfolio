@@ -135,7 +135,10 @@ class PIPFXS01Service {
 
     async getMetadata() {
         const [accounts] = await pool.query("SELECT ACCOUNT_ID AS accountId, ACCOUNT_NM AS accountName FROM PIP_ACCOUNTS WHERE DEL_YN = 'N'");
-        const currencies = ["KRW", "USD", "JPY"]; // 시스템 하드코딩 기준 통화 (추후 DB화 가능)
+        const [currencyRows] = await pool.query(
+            "SELECT CD_ID AS codeId, CD_NM AS codeName FROM PIP_CM_CD WHERE CD_GRP_ID = 'TX_CCY_CD' AND USE_YN = 'Y' AND DEL_YN = 'N' ORDER BY SORT_ORD ASC, CD_ID ASC"
+        );
+        const currencies = currencyRows.map(r => r.codeId);
         return { accounts, currencies };
     }
 }

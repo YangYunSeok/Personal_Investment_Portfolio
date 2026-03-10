@@ -5,6 +5,7 @@ import PIPACTLOGS01 from "./screens/PIPACTLOGS01/PIPACTLOGS01.jsx";
 import PIPFXS01 from "./screens/PIPFXS01/PIPFXS01.jsx";
 import PIPPOSHLDS01 from "./screens/PIPPOSHLDS01/PIPPOSHLDS01.jsx";
 import PIPDASHS01 from "./screens/PIPDASHS01/PIPDASHS01.jsx";
+import PIPSETTINGS01 from "./screens/PIPSETTINGS01/PIPSETTINGS01.jsx";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/activity-log" element={<PIPACTLOGS01 />} />
           <Route path="/fx" element={<PIPFXS01 />} />
           <Route path="/positions" element={<PIPPOSHLDS01 />} />
+          <Route path="/settings" element={<PIPSETTINGS01 />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>

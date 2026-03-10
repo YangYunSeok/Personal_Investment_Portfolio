@@ -6,11 +6,14 @@
  */
 import React, { useState, useEffect } from "react";
 import { getFxActivities, createFxActivity, getFxMeta } from "../../api/PIPFXS01.api";
+import useCommonCodes from "../../hooks/useCommonCodes.js";
 import { INITIAL_FORM_STATE, GRID_COLUMNS } from "./PIPFXS01.constants";
 import styles from "./PIPFXS01.module.css";
 
 export default function PIPFXS01() {
-    const [meta, setMeta] = useState({ accounts: [], currencies: [] });
+    const [meta, setMeta] = useState({ accounts: [] });
+    const { codes } = useCommonCodes(["TX_CCY_CD"]);
+    const currencyOptions = codes.TX_CCY_CD || [];
 
     // 폼 상태
     const [form, setForm] = useState(INITIAL_FORM_STATE);
@@ -42,8 +45,7 @@ export default function PIPFXS01() {
             // Ensure data is an object and has required arrays
             if (data && typeof data === 'object') {
                 setMeta({
-                    accounts: Array.isArray(data.accounts) ? data.accounts : [],
-                    currencies: Array.isArray(data.currencies) ? data.currencies : []
+                    accounts: Array.isArray(data.accounts) ? data.accounts : []
                 });
             }
         } catch (err) {
@@ -193,7 +195,7 @@ export default function PIPFXS01() {
                             onChange={(e) => handleFormChange("fromCurrency", e.target.value)}
                         >
                             <option value="">선택</option>
-                            {meta.currencies.map(c => <option key={c} value={c}>{c}</option>)}
+                            {currencyOptions.map(item => <option key={item.codeId} value={item.codeId}>{item.codeName}</option>)}
                         </select>
                         {formErrors.fromCurrency && <div className={styles.errorText}>{formErrors.fromCurrency}</div>}
                     </div>
@@ -206,7 +208,7 @@ export default function PIPFXS01() {
                             onChange={(e) => handleFormChange("toCurrency", e.target.value)}
                         >
                             <option value="">선택</option>
-                            {meta.currencies.map(c => <option key={c} value={c}>{c}</option>)}
+                            {currencyOptions.map(item => <option key={item.codeId} value={item.codeId}>{item.codeName}</option>)}
                         </select>
                         {formErrors.toCurrency && <div className={styles.errorText}>{formErrors.toCurrency}</div>}
                     </div>
@@ -293,14 +295,14 @@ export default function PIPFXS01() {
                         <span className={styles.filterLabel}>출금 통화</span>
                         <select className={styles.select} value={filters.fromCurrency} onChange={(e) => setFilters({ ...filters, fromCurrency: e.target.value })}>
                             <option value="">전체</option>
-                            {meta.currencies.map(c => <option key={c} value={c}>{c}</option>)}
+                            {currencyOptions.map(item => <option key={item.codeId} value={item.codeId}>{item.codeName}</option>)}
                         </select>
                     </div>
                     <div className={styles.filterItem}>
                         <span className={styles.filterLabel}>입금 통화</span>
                         <select className={styles.select} value={filters.toCurrency} onChange={(e) => setFilters({ ...filters, toCurrency: e.target.value })}>
                             <option value="">전체</option>
-                            {meta.currencies.map(c => <option key={c} value={c}>{c}</option>)}
+                            {currencyOptions.map(item => <option key={item.codeId} value={item.codeId}>{item.codeName}</option>)}
                         </select>
                     </div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchPositions } from "../../api/PIPPOSHLDS01.api.js";
 import { fetchAccountsList } from "../../api/PIPACCOUNTS01.api.js";
-import { ASSET_TYPE_OPTIONS, ASSET_TYPE_LABEL, EXPOSURE_REGION_OPTIONS, EXPOSURE_REGION_LABEL } from "../../api/PIPASSETS01.mapper.js";
+import useCommonCodes, { getCodeName } from "../../hooks/useCommonCodes.js";
 import styles from "./PIPPOSHLDS01.module.css";
 
 const getToday = () => {
@@ -16,6 +16,11 @@ const getToday = () => {
 
 export default function PIPPOSHLDS01() {
     const navigate = useNavigate();
+    const { codes, codeMap } = useCommonCodes(["ASSET_TYPE", "EXPOSURE_REGION"]);
+    const assetTypeOptions = codes.ASSET_TYPE || [];
+    const exposureRegionOptions = codes.EXPOSURE_REGION || [];
+    const assetTypeMap = codeMap.ASSET_TYPE || {};
+    const exposureRegionMap = codeMap.EXPOSURE_REGION || {};
 
     // Header
     const [asOfDate, setAsOfDate] = useState(getToday());
@@ -141,7 +146,7 @@ export default function PIPPOSHLDS01() {
                             onChange={(e) => setFilterForm(prev => ({ ...prev, exposure: e.target.value }))}
                         >
                             <option value="">전체</option>
-                            {EXPOSURE_REGION_OPTIONS.map(o => <option key={o} value={o}>{EXPOSURE_REGION_LABEL[o]}</option>)}
+                            {exposureRegionOptions.map(o => <option key={o.codeId} value={o.codeId}>{o.codeName}</option>)}
                         </select>
                     </div>
                     <div className={styles.filterItem}>
@@ -152,9 +157,7 @@ export default function PIPPOSHLDS01() {
                             onChange={(e) => setFilterForm(prev => ({ ...prev, assetType: e.target.value }))}
                         >
                             <option value="">전체</option>
-                            {ASSET_TYPE_OPTIONS.map(o => <option key={o} value={o}>{ASSET_TYPE_LABEL[o]}</option>)}
-                            <option value="KRW Cash">KRW Cash</option>
-                            <option value="FX Cash">FX Cash</option>
+                            {assetTypeOptions.map(o => <option key={o.codeId} value={o.codeId}>{o.codeName}</option>)}
                         </select>
                     </div>
                     <div className={styles.filterItem}>
@@ -239,8 +242,8 @@ export default function PIPPOSHLDS01() {
                                 onClick={() => handleRowClick(row.accountId, row.assetId)}
                             >
                                 <td>{row.accountId}</td>
-                                <td>{EXPOSURE_REGION_LABEL[row.exposure] || row.exposure}</td>
-                                <td>{ASSET_TYPE_LABEL[row.assetType] || row.assetType}</td>
+                                <td>{getCodeName(exposureRegionMap, row.exposure)}</td>
+                                <td>{getCodeName(assetTypeMap, row.assetType)}</td>
                                 <td style={{ fontWeight: 500 }}>{row.assetName}</td>
                                 <td>{row.currency}</td>
                                 <td style={{ textAlign: "right" }}>{formatNumber(row.quantity, 4)}</td>

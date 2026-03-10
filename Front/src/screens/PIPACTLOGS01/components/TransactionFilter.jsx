@@ -2,16 +2,16 @@ import React from "react";
 import {
     TRANSACTION_TYPE_OPTIONS,
     TRANSACTION_TYPE_LABEL,
-    ASSET_TYPE_OPTIONS,
-    ASSET_TYPE_LABEL,
-    EXPOSURE_REGION_OPTIONS,
-    EXPOSURE_REGION_LABEL,
-    CURRENCY_OPTIONS,
-    CURRENCY_LABEL
 } from "../PIPACTLOGS01.constants";
+import useCommonCodes, { getCodeName } from "../../../hooks/useCommonCodes.js";
 import styles from "../PIPACTLOGS01.module.css";
 
 export default function TransactionFilter({ filters, onChange, onSearch, accounts, isListLoading }) {
+    const { codes, codeMap } = useCommonCodes(["ASSET_TYPE", "EXPOSURE_REGION", "TX_CCY_CD"]);
+    const assetTypeOptions = codes.ASSET_TYPE || [];
+    const exposureRegionOptions = codes.EXPOSURE_REGION || [];
+    const currencyOptions = codes.TX_CCY_CD || [];
+
     const updateFilter = (key) => (e) => {
         const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
         onChange(key, value);
@@ -61,8 +61,8 @@ export default function TransactionFilter({ filters, onChange, onSearch, account
                         onChange={updateFilter("assetType")}
                     >
                         <option value="">전체</option>
-                        {ASSET_TYPE_OPTIONS.map(opt => (
-                            <option key={opt} value={opt}>{ASSET_TYPE_LABEL[opt]}</option>
+                        {assetTypeOptions.map(opt => (
+                            <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>
                         ))}
                     </select>
                 </div>
@@ -74,8 +74,8 @@ export default function TransactionFilter({ filters, onChange, onSearch, account
                         onChange={updateFilter("exposureRegion")}
                     >
                         <option value="">전체</option>
-                        {EXPOSURE_REGION_OPTIONS.map(opt => (
-                            <option key={opt} value={opt}>{EXPOSURE_REGION_LABEL[opt]}</option>
+                        {exposureRegionOptions.map(opt => (
+                            <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>
                         ))}
                     </select>
                 </div>
@@ -100,8 +100,8 @@ export default function TransactionFilter({ filters, onChange, onSearch, account
                         onChange={updateFilter("tradeCurrency")}
                     >
                         <option value="">전체</option>
-                        {CURRENCY_OPTIONS.map(opt => (
-                            <option key={opt} value={opt}>{CURRENCY_LABEL[opt]}</option>
+                        {currencyOptions.map(opt => (
+                            <option key={opt.codeId} value={opt.codeId}>{opt.codeName}</option>
                         ))}
                     </select>
                 </div>

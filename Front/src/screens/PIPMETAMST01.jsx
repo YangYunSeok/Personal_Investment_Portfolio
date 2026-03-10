@@ -14,17 +14,12 @@ import {
     restoreAccount,
 } from "../api/PIPACCOUNTS01.api.js";
 import {
-    ASSET_TYPE_LABEL,
-    ASSET_TYPE_OPTIONS,
-    CURRENCY_LABEL,
-    CURRENCY_OPTIONS,
-    EXPOSURE_REGION_LABEL,
-    EXPOSURE_REGION_OPTIONS,
     buildAssetUpsertPayload,
     buildAssetsListQuery,
     createEmptyAssetForm,
     mapAssetListResponse,
 } from "../api/PIPASSETS01.mapper.js";
+import useCommonCodes, { getCodeName } from "../hooks/useCommonCodes.js";
 import styles from "./PIPASSETS01.module.css";
 
 const initialAssetFilterForm = {
@@ -41,6 +36,13 @@ const initialAccountFilterForm = {
 
 export default function PIPMETAMST01() {
     const [activeTab, setActiveTab] = useState("assets"); // 'assets' | 'accounts'
+    const { codes, codeMap } = useCommonCodes(["ASSET_TYPE", "EXPOSURE_REGION", "TX_CCY_CD"]);
+    const assetTypeOptions = codes.ASSET_TYPE || [];
+    const exposureRegionOptions = codes.EXPOSURE_REGION || [];
+    const currencyOptions = codes.TX_CCY_CD || [];
+    const assetTypeMap = codeMap.ASSET_TYPE || {};
+    const exposureRegionMap = codeMap.EXPOSURE_REGION || {};
+    const currencyMap = codeMap.TX_CCY_CD || {};
 
     // ================== Common States ==================
     const [isListLoading, setIsListLoading] = useState(false);
@@ -259,7 +261,7 @@ export default function PIPMETAMST01() {
                                     onChange={e => setAssetFilterForm({ ...assetFilterForm, assetType: e.target.value })}
                                 >
                                     <option value="">전체</option>
-                                    {ASSET_TYPE_OPTIONS.map(o => <option key={o} value={o}>{ASSET_TYPE_LABEL[o]}</option>)}
+                                    {assetTypeOptions.map(o => <option key={o.codeId} value={o.codeId}>{o.codeName}</option>)}
                                 </select>
                             </div>
                             <div className={styles.filterItem}>
@@ -340,12 +342,12 @@ export default function PIPMETAMST01() {
                                         </td>
                                         <td>
                                             <select className={styles.gridSelect} value={assetDrafts[item.assetId]?.assetType ?? item.assetType} onChange={e => updateAssetDraft(item.assetId, "assetType", e.target.value)}>
-                                                {ASSET_TYPE_OPTIONS.map(o => <option key={o} value={o}>{ASSET_TYPE_LABEL[o]}</option>)}
+                                                {assetTypeOptions.map(o => <option key={o.codeId} value={o.codeId}>{o.codeName}</option>)}
                                             </select>
                                         </td>
                                         <td>
                                             <select className={styles.gridSelect} value={assetDrafts[item.assetId]?.exposureRegion ?? item.exposureRegion} onChange={e => updateAssetDraft(item.assetId, "exposureRegion", e.target.value)}>
-                                                {EXPOSURE_REGION_OPTIONS.map(o => <option key={o} value={o}>{EXPOSURE_REGION_LABEL[o]}</option>)}
+                                                {exposureRegionOptions.map(o => <option key={o.codeId} value={o.codeId}>{o.codeName}</option>)}
                                             </select>
                                         </td>
                                         <td>{item.currency}</td>
@@ -446,7 +448,7 @@ export default function PIPMETAMST01() {
                                         </td>
                                         <td>
                                             <select className={styles.gridSelect} value={accountDrafts[item.id]?.currency ?? item.currency} onChange={e => updateAccountDraft(item.id, "currency", e.target.value)}>
-                                                {CURRENCY_OPTIONS.map(c => <option key={c} value={c}>{CURRENCY_LABEL[c]}</option>)}
+                                                {currencyOptions.map(c => <option key={c.codeId} value={c.codeId}>{c.codeName}</option>)}
                                             </select>
                                         </td>
                                     </tr>
@@ -477,7 +479,7 @@ export default function PIPMETAMST01() {
                                 <label className={styles.formFieldLabel}>자산유형</label>
                                 <select className={styles.select} value={assetForm.assetType} onChange={e => setAssetForm({ ...assetForm, assetType: e.target.value })}>
                                     <option value="">선택</option>
-                                    {ASSET_TYPE_OPTIONS.map(o => <option key={o} value={o}>{ASSET_TYPE_LABEL[o]}</option>)}
+                                    {assetTypeOptions.map(o => <option key={o.codeId} value={o.codeId}>{o.codeName}</option>)}
                                 </select>
                                 {assetFieldErrors.assetType && <span className={styles.fieldError}>{assetFieldErrors.assetType}</span>}
                             </div>
@@ -485,7 +487,7 @@ export default function PIPMETAMST01() {
                                 <label className={styles.formFieldLabel}>지역</label>
                                 <select className={styles.select} value={assetForm.exposureRegion} onChange={e => setAssetForm({ ...assetForm, exposureRegion: e.target.value })}>
                                     <option value="">선택</option>
-                                    {EXPOSURE_REGION_OPTIONS.map(o => <option key={o} value={o}>{EXPOSURE_REGION_LABEL[o]}</option>)}
+                                    {exposureRegionOptions.map(o => <option key={o.codeId} value={o.codeId}>{o.codeName}</option>)}
                                 </select>
                                 {assetFieldErrors.exposureRegion && <span className={styles.fieldError}>{assetFieldErrors.exposureRegion}</span>}
                             </div>
@@ -493,7 +495,7 @@ export default function PIPMETAMST01() {
                                 <label className={styles.formFieldLabel}>통화</label>
                                 <select className={styles.select} value={assetForm.currency} onChange={e => setAssetForm({ ...assetForm, currency: e.target.value })}>
                                     <option value="">선택</option>
-                                    {CURRENCY_OPTIONS.map(c => <option key={c} value={c}>{CURRENCY_LABEL[c]}</option>)}
+                                    {currencyOptions.map(c => <option key={c.codeId} value={c.codeId}>{c.codeName}</option>)}
                                 </select>
                                 {assetFieldErrors.currency && <span className={styles.fieldError}>{assetFieldErrors.currency}</span>}
                             </div>
@@ -551,7 +553,7 @@ export default function PIPMETAMST01() {
                         <div className={styles.formField}>
                             <label className={styles.formFieldLabel}>기준 통화 (기본 KRW)</label>
                             <select className={styles.select} value={accountForm.currency} onChange={e => setAccountForm({ ...accountForm, currency: e.target.value })}>
-                                {CURRENCY_OPTIONS.map(c => <option key={c} value={c}>{CURRENCY_LABEL[c]}</option>)}
+                                {currencyOptions.map(c => <option key={c.codeId} value={c.codeId}>{c.codeName}</option>)}
                             </select>
                         </div>
                         <div className={styles.modalActions} style={{ marginTop: 20 }}>
