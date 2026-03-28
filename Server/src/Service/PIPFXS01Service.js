@@ -4,7 +4,7 @@
  * Purpose: 환전 활동 DB 처리 (단일 원장 저장 기반)
  * Related SSOT:
  *  - docs/design/model/PIPFXS01_MODEL.md
- *  - docs/design/db/PIPFXS01_DB.md
+ *  - docs/design/db/PIP_DB_SNAPSHOT.md
  * Rules:
  *  - 환차손익, 기타 계산 잔액 등은 절대 저장하지 않음.
  *  - PIP_TRANSACTIONS의 transaction_type='FX'로만 기록

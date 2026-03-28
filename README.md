@@ -351,8 +351,8 @@ npm run preview # 빌드 결과 로컬 미리보기
 
 | ScreenID | API | MODEL | UI | DB |
 |---|---|---|---|---|
-| PIPACTLOGS01 | [API](docs/design/api/PIPACTLOGS01_API.md) | [MODEL](docs/design/model/PIPACTLOGS01_MODEL.md) | [UI](docs/design/ui/PIPACTLOGS01_UI.md) | [DB](docs/design/db/PIPACTLOGS01_DB.md) |
-| PIPASSETS01 | [API](docs/design/api/PIPASSETS01_API.md) | [MODEL](docs/design/model/PIPASSETS01_MODEL.md) | [UI](docs/design/ui/PIPASSETS01_UI.md) | [DB](docs/design/db/PIPASSETS01_DB.md) |
-| PIPPOSHLDS01 | [API](docs/design/api/PIPPOSHLDS01_API.md) | [MODEL](docs/design/model/PIPPOSHLDS01_MODEL.md) | [UI](docs/design/ui/PIPPOSHLDS01_UI.md) | [DB](docs/design/db/PIPPOSHLDS01_DB.md) |
-| PIPDASHS01 | [API](docs/design/api/PIPDASHS01_API.md) | [MODEL](docs/design/model/PIPDASHS01_MODEL.md) | [UI](docs/design/ui/PIPDASHS01_UI.md) | [DB](docs/design/db/PIPDASHS01_DB.md) |
-| PIPFXS01 | [API](docs/design/api/PIPFXS01_API.md) | [MODEL](docs/design/model/PIPFXS01_MODEL.md) | [UI](docs/design/ui/PIPFXS01_UI.md) | [DB](docs/design/db/PIPFXS01_DB.md) |
+| PIPACTLOGS01 | [API](docs/design/api/PIPACTLOGS01_API.md) | [MODEL](docs/design/model/PIPACTLOGS01_MODEL.md) | [UI](docs/design/ui/PIPACTLOGS01_UI.md) | [DB](docs/design/db/PIP_DB_SNAPSHOT.md) |
+| PIPASSETS01 | [API](docs/design/api/PIPASSETS01_API.md) | [MODEL](docs/design/model/PIPASSETS01_MODEL.md) | [UI](docs/design/ui/PIPASSETS01_UI.md) | [DB](docs/design/db/PIP_DB_SNAPSHOT.md) |
+| PIPPOSHLDS01 | [API](docs/design/api/PIPPOSHLDS01_API.md) | [MODEL](docs/design/model/PIPPOSHLDS01_MODEL.md) | [UI](docs/design/ui/PIPPOSHLDS01_UI.md) | [DB](docs/design/db/PIP_DB_SNAPSHOT.md) |
+| PIPDASHS01 | [API](docs/design/api/PIPDASHS01_API.md) | [MODEL](docs/design/model/PIPDASHS01_MODEL.md) | [UI](docs/design/ui/PIPDASHS01_UI.md) | [DB](docs/design/db/PIP_DB_SNAPSHOT.md) |
+| PIPFXS01 | [API](docs/design/api/PIPFXS01_API.md) | [MODEL](docs/design/model/PIPFXS01_MODEL.md) | [UI](docs/design/ui/PIPFXS01_UI.md) | [DB](docs/design/db/PIP_DB_SNAPSHOT.md) |

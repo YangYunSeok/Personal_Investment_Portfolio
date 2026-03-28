@@ -4,7 +4,7 @@
  * Screen Name : Dashboard (대시보드)
  * Purpose : 포트폴리오 요약 정보 조회 (조회 전용)
  * API : GET /api/pip/dashboard
- * SSOT Docs : PIPDASHS01_API.md, PIPDASHS01_MODEL.md, PIPDASHS01_DB.md
+ * SSOT Docs : PIPDASHS01_API.md, PIPDASHS01_MODEL.md, PIP_DB_SNAPSHOT.md
  * Rules :
  *   - 계산 결과 저장 금지
  *   - Dashboard 전용 테이블 생성 금지

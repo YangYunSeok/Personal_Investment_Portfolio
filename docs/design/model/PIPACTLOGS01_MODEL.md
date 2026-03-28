@@ -7,7 +7,7 @@
 - Domain Concept: **Transaction**
 
 > 상위 문서: `기본_화면_설계_V0.2.1.md`  
-> 연관 문서: `PIPACTLOGS01_UI.md`, `PIPACTLOGS01_API.md`, `PIPACTLOGS01_DB.md`
+> 연관 문서: `PIPACTLOGS01_UI.md`, `PIPACTLOGS01_API.md`, `PIP_DB_SNAPSHOT.md`
 
 ---
 
