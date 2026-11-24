@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const pool = require("../db");
 const { calculateAmountKrw, resolveTradeAmount } = require("../utils/transactionCalculator");
 
@@ -9,6 +10,7 @@ class PIPACTLOGS01Service {
     let sql = `
       SELECT 
         TX_ID AS id,
+        TX_ID AS txId,
         TX_DT AS tradeDate,
         ACCOUNT_ID AS accountId,
         ASSET_ID AS assetId,
@@ -82,7 +84,7 @@ class PIPACTLOGS01Service {
   async getById(id) {
     const sql = `
       SELECT 
-        TX_ID AS id, TX_DT AS tradeDate, ACCOUNT_ID AS accountId, ASSET_ID AS assetId,
+        TX_ID AS id, TX_ID AS txId, TX_DT AS tradeDate, ACCOUNT_ID AS accountId, ASSET_ID AS assetId,
         TX_TP_CD AS transactionType, ASSET_TP_CD AS assetType, EXPOSURE_REGION AS exposureRegion,
         QTY AS quantity, UNIT_PRC AS unitPrice, AMT AS tradeAmount,
         TX_CCY_CD AS tradeCurrency, FX_RATE AS fxRate, FROM_CCY_CD AS fromCurrency,
@@ -108,21 +110,34 @@ class PIPACTLOGS01Service {
       unitPrice: data.unitPrice
     });
 
+    const txId = crypto.randomUUID();
+
     const sql = `
       INSERT INTO PIP_TRANSACTIONS (
-        TX_DT, ACCOUNT_ID, ASSET_ID, TX_TP_CD, ASSET_TP_CD, EXPOSURE_REGION,
+        TX_ID, TX_DT, ACCOUNT_ID, ASSET_ID, TX_TP_CD, ASSET_TP_CD, EXPOSURE_REGION,
         QTY, UNIT_PRC, AMT, TX_CCY_CD, FX_RATE, FROM_CCY_CD, TO_CCY_CD, MEMO, DEL_YN
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'N')
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'N')
     `;
     const params = [
-      data.tradeDate, data.accountId, data.assetId || null, data.transactionType,
-      data.assetType, data.exposureRegion, data.quantity || null, data.unitPrice || null,
-      tradeAmount || 0, data.tradeCurrency, data.fxRate || null,
-      data.fromCurrency || null, data.toCurrency || null, data.memo || null
+      txId,
+      data.tradeDate,
+      data.accountId,
+      data.assetId || null,
+      data.transactionType,
+      data.assetType || null,
+      data.exposureRegion || null,
+      data.quantity || null,
+      data.unitPrice || null,
+      tradeAmount || 0,
+      data.tradeCurrency,
+      data.fxRate || null,
+      data.fromCurrency || null,
+      data.toCurrency || null,
+      data.memo || null
     ];
 
-    const [result] = await pool.query(sql, params);
-    return this.getById(result.insertId);
+    await pool.query(sql, params);
+    return this.getById(txId);
   }
 
   async update(id, data) {
@@ -160,7 +175,7 @@ class PIPACTLOGS01Service {
 
   async getMetadata() {
     const [accounts] = await pool.query("SELECT ACCOUNT_ID AS id, ACCOUNT_NM AS name FROM PIP_ACCOUNTS WHERE DEL_YN = 'N'");
-    const [assets] = await pool.query("SELECT ASSET_ID AS id, ASSET_NM AS name FROM PIP_ASSETS WHERE DEL_YN = 'N'");
+    const [assets] = await pool.query("SELECT ASSET_ID AS id, ASSET_NM AS name, ASSET_TP_CD AS assetType, EXPOSURE_REGION AS exposureRegion, TRADE_CCY_CD AS tradeCurrency FROM PIP_ASSETS WHERE DEL_YN = 'N'");
     return { accounts, assets };
   }
 }

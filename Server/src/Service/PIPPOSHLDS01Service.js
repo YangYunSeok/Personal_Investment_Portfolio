@@ -45,9 +45,15 @@ class PIPPOSHLDS01Service {
         const latestFxRates = {};
 
         transactions.forEach(tx => {
-            // Track FX Rate
+            // Track FX Rate (일반 거래 및 FX 거래 모두 반영)
             if (tx.tradeCurrency && tx.tradeCurrency !== "KRW" && tx.fxRate) {
-                latestFxRates[tx.tradeCurrency] = tx.fxRate;
+                latestFxRates[tx.tradeCurrency] = Number(tx.fxRate);
+            }
+            if (tx.toCurrency && tx.toCurrency !== "KRW" && tx.fxRate) {
+                latestFxRates[tx.toCurrency] = Number(tx.fxRate);
+            }
+            if (tx.fromCurrency && tx.fromCurrency !== "KRW" && tx.fxRate) {
+                latestFxRates[tx.fromCurrency] = Number(tx.fxRate);
             }
 
             // Handle Asset Positions (Stock, ETF, etc.)
@@ -162,8 +168,20 @@ class PIPPOSHLDS01Service {
             }
         });
 
+        // Clamping cash positions:
+        // 외화 입금(DEPOSIT)이나 환전(FX 유입) 없이 매수(BUY) 등 현금 유출만 발생한 경우
+        // 현금 잔액이 음수(< 0)로 누적되지 않도록 0으로 클램핑 처리
+        Object.values(posMap).forEach(p => {
+            if (p.assetType === "KRW Cash" || p.assetType === "FX Cash" || p.assetId?.endsWith("_CASH")) {
+                if (p.quantity < 0) {
+                    p.quantity = 0;
+                    p.costBasis = 0;
+                }
+            }
+        });
+
         let results = Object.values(posMap)
-            .filter(p => Math.abs(p.quantity) >= 0.0001); // Filter out zero positions due to floating point
+            .filter(p => p.quantity >= 0.0001); // Filter out zero and negative positions
 
         // Apply currency conversions
         results = results.map(p => {

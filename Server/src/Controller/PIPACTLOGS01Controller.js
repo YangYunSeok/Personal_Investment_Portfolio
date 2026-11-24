@@ -8,6 +8,7 @@ function validateTransaction(data) {
 
   // BUY / SELL
   if (["BUY", "SELL"].includes(transactionType)) {
+    if (!data.assetId) errors.assetId = "Asset ID is required for BUY/SELL";
     if (!quantity) errors.quantity = "Quantity is required for BUY/SELL";
     if (!unitPrice) errors.unitPrice = "Unit price is required for BUY/SELL";
     if (tradeCurrency !== "KRW" && !fxRate) {
@@ -97,6 +98,11 @@ function registerPIPACTLOGS01Controller(app, service) {
       const item = await service.create(req.body);
       res.status(201).json(item);
     } catch (err) {
+      if (err.code === "ER_NO_REFERENCED_ROW_2" || err.errno === 1452) {
+        return res.status(400).json({
+          error: "등록되지 않은 자산(Ticker) 또는 계좌입니다. 자산 메타 마스터(PIPASSETS01)에 등록된 자산을 선택해주세요."
+        });
+      }
       res.status(500).json({ error: err.message });
     }
   });
@@ -111,6 +117,11 @@ function registerPIPACTLOGS01Controller(app, service) {
       if (!item) return res.status(404).json({ error: "Transaction not found" });
       res.json(item);
     } catch (err) {
+      if (err.code === "ER_NO_REFERENCED_ROW_2" || err.errno === 1452) {
+        return res.status(400).json({
+          error: "등록되지 않은 자산(Ticker) 또는 계좌입니다. 자산 메타 마스터(PIPASSETS01)에 등록된 자산을 선택해주세요."
+        });
+      }
       res.status(500).json({ error: err.message });
     }
   });

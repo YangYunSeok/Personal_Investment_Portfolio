@@ -101,7 +101,9 @@ export default function PIPACTLOGS01() {
             if (editingItem) {
                 await updateTransaction(editingItem.id, formData);
             } else {
-                await createTransaction(formData);
+                // 신규 거래는 서버에서 TX_ID(UUID v4)를 자동 채번하므로 클라이언트 임의 생성/기존 ID 필드가 있을 경우 제외
+                const { id, txId, ...payload } = formData;
+                await createTransaction(payload);
             }
             setIsModalOpen(false);
             loadList();

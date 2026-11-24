@@ -26,8 +26,9 @@ export async function createTransaction(data) {
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Failed to create transaction");
+    const errorData = await res.json().catch(() => ({}));
+    const message = errorData.error || (errorData.errors ? Object.values(errorData.errors).join(", ") : errorData.message) || "Failed to create transaction";
+    throw new Error(message);
   }
   return res.json();
 }
@@ -39,8 +40,9 @@ export async function updateTransaction(id, data) {
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Failed to update transaction");
+    const errorData = await res.json().catch(() => ({}));
+    const message = errorData.error || (errorData.errors ? Object.values(errorData.errors).join(", ") : errorData.message) || "Failed to update transaction";
+    throw new Error(message);
   }
   return res.json();
 }

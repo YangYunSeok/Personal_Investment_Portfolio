@@ -54,9 +54,15 @@ class PIPDASHS01Service {
         const latestFxRates = {};
 
         transactions.forEach(tx => {
-            // 최신 환율 추적
+            // 최신 환율 추적 (일반 거래 및 FX 거래 모두 반영)
             if (tx.tradeCurrency && tx.tradeCurrency !== "KRW" && tx.fxRate) {
                 latestFxRates[tx.tradeCurrency] = Number(tx.fxRate);
+            }
+            if (tx.toCurrency && tx.toCurrency !== "KRW" && tx.fxRate) {
+                latestFxRates[tx.toCurrency] = Number(tx.fxRate);
+            }
+            if (tx.fromCurrency && tx.fromCurrency !== "KRW" && tx.fxRate) {
+                latestFxRates[tx.fromCurrency] = Number(tx.fxRate);
             }
 
             // 자산 포지션 (BUY/SELL)
@@ -163,9 +169,21 @@ class PIPDASHS01Service {
             }
         });
 
-        // 4) 포지션을 KRW로 환산하고 집계
+        // 현금 포지션 음수 클램핑 처리
+        // 외화 입금(DEPOSIT)이나 환전(FX 유입) 없이 매수(BUY) 등 현금 유출만 발생한 경우
+        // 현금 잔액이 음수(< 0)로 떨어지지 않도록 0으로 클램핑 처리
+        Object.values(posMap).forEach(p => {
+            if (p.assetType === "Cash" || p.assetId?.endsWith("_CASH")) {
+                if (p.quantity < 0) {
+                    p.quantity = 0;
+                    p.costBasis = 0;
+                }
+            }
+        });
+
+        // 4) 포지션을 KRW로 환산하고 집계 (보유 잔액 0 초과만 대상)
         const positions = Object.values(posMap)
-            .filter(p => Math.abs(p.quantity) >= 0.0001);
+            .filter(p => p.quantity >= 0.0001);
 
         let totalAssetKrw = 0;
         let totalInvestedKrw = 0;
@@ -181,7 +199,7 @@ class PIPDASHS01Service {
 
             totalAssetKrw += costBasisKRW;
 
-            // 투자 원금: BUY로 투입된 금액 기준 (costBasis가 양수인 것만)
+            // 투자 원금: 보유 포지션 원가 기준 (양수인 것만 누적)
             if (costBasisKRW > 0) {
                 totalInvestedKrw += costBasisKRW;
             }
@@ -191,14 +209,14 @@ class PIPDASHS01Service {
             if (!assetTypeMap[aType]) {
                 assetTypeMap[aType] = 0;
             }
-            assetTypeMap[aType] += Math.abs(costBasisKRW);
+            assetTypeMap[aType] += costBasisKRW;
 
             // region 집계
             const region = p.exposure || "GLOBAL";
             if (!regionMap[region]) {
                 regionMap[region] = 0;
             }
-            regionMap[region] += Math.abs(costBasisKRW);
+            regionMap[region] += costBasisKRW;
         });
 
         // 5) 수익률 계산

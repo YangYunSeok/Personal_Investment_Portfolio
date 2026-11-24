@@ -9,6 +9,7 @@
  *  - 환차손익, 기타 계산 잔액 등은 절대 저장하지 않음.
  *  - PIP_TRANSACTIONS의 transaction_type='FX'로만 기록
  */
+const crypto = require("crypto");
 const pool = require("../db");
 
 class PIPFXS01Service {
@@ -112,13 +113,15 @@ class PIPFXS01Service {
     }
 
     async create(data) {
+        const txId = crypto.randomUUID();
         const sql = `
       INSERT INTO PIP_TRANSACTIONS (
-        TX_DT, ACCOUNT_ID, TX_TP_CD, 
+        TX_ID, TX_DT, ACCOUNT_ID, TX_TP_CD, 
         AMT, TX_CCY_CD, FX_RATE, FROM_CCY_CD, TO_CCY_CD, MEMO, DEL_YN
-      ) VALUES (?, ?, 'FX', ?, ?, ?, ?, ?, ?, 'N')
+      ) VALUES (?, ?, ?, 'FX', ?, ?, ?, ?, ?, ?, 'N')
     `;
         const params = [
+            txId,
             data.tradeDate,
             data.accountId,
             data.tradeAmount,
@@ -129,8 +132,8 @@ class PIPFXS01Service {
             data.memo || null
         ];
 
-        const [result] = await pool.query(sql, params);
-        return this.getById(result.insertId);
+        await pool.query(sql, params);
+        return this.getById(txId);
     }
 
     async getMetadata() {

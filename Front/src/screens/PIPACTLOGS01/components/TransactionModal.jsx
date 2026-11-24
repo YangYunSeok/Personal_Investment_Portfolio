@@ -66,6 +66,7 @@ export default function TransactionModal({
         if (!form.transactionType) newErrors.transactionType = "거래유형을 선택해주세요.";
 
         if (["BUY", "SELL"].includes(form.transactionType)) {
+            if (!form.assetId) newErrors.assetId = "자산(종목)을 선택해주세요.";
             if (!form.quantity) newErrors.quantity = "수량을 입력해주세요.";
             if (!form.unitPrice) newErrors.unitPrice = "단가를 입력해주세요.";
         }
@@ -174,14 +175,31 @@ export default function TransactionModal({
                             </div>
 
                             <div className={styles.filterItem}>
-                                <span className={styles.filterLabel}>자산 (Ticker/ID)</span>
-                                <input
-                                    type="text"
-                                    className={styles.input}
+                                <span className={styles.filterLabel}>자산 (Ticker/ID) *</span>
+                                <select
+                                    className={styles.select}
                                     value={form.assetId}
-                                    onChange={(e) => handleChange("assetId", e.target.value.toUpperCase())}
-                                    placeholder="예: AAPL"
-                                />
+                                    onChange={(e) => {
+                                        const selectedId = e.target.value;
+                                        const found = assets.find(a => a.id === selectedId);
+                                        setForm(prev => ({
+                                            ...prev,
+                                            assetId: selectedId,
+                                            assetType: found?.assetType ? found.assetType.toUpperCase() : prev.assetType,
+                                            exposureRegion: found?.exposureRegion || prev.exposureRegion,
+                                            tradeCurrency: found?.tradeCurrency || prev.tradeCurrency
+                                        }));
+                                        if (errors.assetId) setErrors(prev => ({ ...prev, assetId: "" }));
+                                    }}
+                                >
+                                    <option value="">선택 (자산 마스터 기준)</option>
+                                    {assets.map(asset => (
+                                        <option key={asset.id} value={asset.id}>
+                                            {asset.id} - {asset.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.assetId && <span className={styles.errorText}>{errors.assetId}</span>}
                             </div>
                         </>
                     )}
